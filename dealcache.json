@@ -13162,5 +13162,19 @@
     ],
     "image_url": "https://images.tripper.nl/entree-cannabis-museum-2-personen-korting/2d1d5d.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
+  },
+  "https://www.tripper.nl/deal/mixed-grill-schotel-naar-keuze-grieks-restaurant-alexandros-korting": {
+    "lat": 51.97078743,
+    "lng": 5.66920423,
+    "address": "Grieks Restaurant Alexandros, Spelstraat 1, Wageningen",
+    "locations": [
+      {
+        "lat": 51.97078743,
+        "lng": 5.66920423,
+        "address": "Grieks Restaurant Alexandros, Spelstraat 1, Wageningen"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/mixed-grill-schotel-naar-keuze-grieks-restaurant-alexandros-korting/5e8c7f.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
