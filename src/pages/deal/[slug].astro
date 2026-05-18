@@ -30,11 +30,11 @@ const h = deal.history;
 const currentPrice = deal.discounted_price ?? h?.current_price;
 const originalPrice = deal.original_price ?? (h?.prices?.at(-1)?.original);
 
-const titlePrice = currentPrice != null ? ` - prijs vanaf €${currentPrice.toFixed(0)}` : '';
+const titlePrice = currentPrice != null ? ` - prijs vanaf €${currentPrice.toFixed(2)}` : '';
 const pageTitle = `${deal.name}${titlePrice} | Tripper Deals`;
 const metaDesc = [
   deal.discount_num ? `${deal.discount_num}% korting` : deal.discount ?? '',
-  originalPrice != null && currentPrice != null ? `van €${originalPrice.toFixed(0)} voor €${currentPrice.toFixed(0)}` : '',
+  originalPrice != null && currentPrice != null ? `van €${originalPrice.toFixed(2)} voor €${currentPrice.toFixed(2)}` : '',
   deal.provider ? `bij ${deal.provider}` : '',
   deal.location ? `in ${deal.location}` : '',
   deal.locations.length > 1 ? `(${deal.locations.length} locaties)` : '',

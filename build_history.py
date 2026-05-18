@@ -114,35 +114,47 @@ def build_history():
             entry['current_price'] = None
             entry['at_lowest'] = False
 
-        # Trend: compare current price vs price from 7 days ago.
+        # Trend: linear regression slope over the last 7 days of prices.
         # Mark as 'new' only if first seen within the last 7 days.
         seven_days_ago = None
         if latest_date:
             seven_days_ago = (date.fromisoformat(latest_date) - timedelta(days=7)).isoformat()
 
-        if valid_prices and seven_days_ago:
+        if seven_days_ago and entry.get('first_seen', '') >= seven_days_ago and not valid_prices:
+            entry['trend'] = 'new'
+        elif valid_prices and seven_days_ago:
+            # Collect price points within the 7-day window (inclusive)
+            window = [
+                p['price'] for p in entry['prices']
+                if p['price'] is not None and p['date'] >= seven_days_ago
+            ]
             current = valid_prices[-1]
-            # Find the most recent price at or before 7 days ago
-            price_7d = next(
-                (p['price'] for p in reversed(entry['prices'])
-                 if p['price'] is not None and p['date'] <= seven_days_ago),
-                None
-            )
-            if price_7d is not None:
-                if current < price_7d:
+
+            if not window or entry['first_seen'] >= seven_days_ago and len(window) <= 1:
+                # Deal appeared within 7 days and we only have 1 point — it's new
+                entry['trend'] = 'new'
+            elif len(window) == 1:
+                # Older deal, only one price in window — stable
+                entry['trend'] = 'stable'
+            else:
+                # Linear regression slope over the window (x = index, y = price)
+                n = len(window)
+                x_mean = (n - 1) / 2.0
+                y_mean = sum(window) / n
+                numerator = sum((i - x_mean) * (window[i] - y_mean) for i in range(n))
+                denominator = sum((i - x_mean) ** 2 for i in range(n))
+                slope = numerator / denominator if denominator else 0.0
+
+                # Project slope across the window to get total estimated change
+                total_change = slope * (n - 1)
+                pct_change = total_change / window[0] if window[0] else 0.0
+
+                if total_change < -0.50 and pct_change < -0.02:
                     entry['trend'] = 'down'
-                elif current > price_7d:
+                elif total_change > 0.50 and pct_change > 0.02:
                     entry['trend'] = 'up'
                 else:
                     entry['trend'] = 'stable'
-            elif entry['first_seen'] >= seven_days_ago:
-                # No price from 7d ago means deal is newer than 7 days
-                entry['trend'] = 'new'
-            else:
-                # Older deal but no price movement detected
-                entry['trend'] = 'stable'
-        elif entry.get('first_seen') and seven_days_ago and entry['first_seen'] >= seven_days_ago:
-            entry['trend'] = 'new'
         else:
             entry['trend'] = 'stable'
 

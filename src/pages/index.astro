@@ -341,13 +341,13 @@ function renderStats() {
   const discounts = deals.map(d => d.discount_num).filter(d => d > 0);
   const atLowest = deals.filter(d => d._atLowest && d.discounted_price != null).length;
   const priceDrops = deals.filter(d => d._trend === 'down').length;
-  const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(0) : '-';
+  const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : '-';
   document.getElementById('stats-bar').innerHTML = `
     <div class="stat"><span class="stat-label">Deals</span><span class="stat-value accent">${deals.length}</span></div>
     <div class="stat"><span class="stat-label">Gem. prijs</span><span class="stat-value">&euro;${avg(prices)}</span></div>
     <div class="stat"><span class="stat-label">Gem. korting</span><span class="stat-value">${avg(discounts)}%</span></div>
     <div class="stat"><span class="stat-label">Gem. besparing</span><span class="stat-value">&euro;${avg(savings)}</span></div>
-    <div class="stat"><span class="stat-label">Laagste prijs</span><span class="stat-value">&euro;${prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity).toFixed(0) : '-'}</span></div>
+    <div class="stat"><span class="stat-label">Laagste prijs</span><span class="stat-value">&euro;${prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity).toFixed(2) : '-'}</span></div>
     <div class="stat"><span class="stat-label">📉 Prijsdalingen</span><span class="stat-value">${priceDrops}</span></div>
     <div class="stat"><span class="stat-label">⭐ Op laagste prijs</span><span class="stat-value">${atLowest}</span></div>
   `;
@@ -596,7 +596,7 @@ function renderMap(fitBounds = true) {
       const multi = it.locCount > 1 ? ` <span class="multi-loc-note">(1 van ${it.locCount} locaties)</span>` : '';
       const slug = getSlug(d.url);
       const href = slug ? esc(DATA_BASE + '/deal/' + slug + '/') : safeUrl(d.url);
-      return `<a href="${href}">${esc(d.name)}</a> ${d.discounted_price != null ? '€' + d.discounted_price.toFixed(0) : ''}${trend}${lowest}${multi}`;
+      return `<a href="${href}">${esc(d.name)}</a> ${d.discounted_price != null ? '€' + d.discounted_price.toFixed(2) : ''}${trend}${lowest}${multi}`;
     }).join('<br>');
     const more = count > 8 ? `<br><i>...en ${count - 8} meer</i>` : '';
     const marker = L.marker([g.lat, g.lng]).addTo(map).bindPopup(`${label}<br>${list}${more}`, { maxWidth: 320 });
