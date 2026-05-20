@@ -13470,5 +13470,47 @@
     ],
     "image_url": "https://images.tripper.nl/hotel-cafe-restaurant-prinsen/d55662.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
+  },
+  "https://www.tripper.nl/deal/all-you-can-eat-wereldrestaurant-favour-korting": {
+    "lat": 51.53506241,
+    "lng": 4.48792435,
+    "address": "Wereldrestaurant Favour, Rucphensebaan 18, Roosendaal",
+    "locations": [
+      {
+        "lat": 51.53506241,
+        "lng": 4.48792435,
+        "address": "Wereldrestaurant Favour, Rucphensebaan 18, Roosendaal"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/all-you-can-eat-wereldrestaurant-favour-korting/718665.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/2-gangen-lunch-vintage-coffee-drachten-korting": {
+    "lat": 53.1062506,
+    "lng": 6.09801744,
+    "address": "Vintage Coffee, Zuiderbuurt 14, Drachten",
+    "locations": [
+      {
+        "lat": 53.1062506,
+        "lng": 6.09801744,
+        "address": "Vintage Coffee, Zuiderbuurt 14, Drachten"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/2-gangen-lunch-vintage-coffee-drachten-korting/6cde63.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/high-tea-vintage-coffee-drachten-korting": {
+    "lat": 53.1062506,
+    "lng": 6.09801744,
+    "address": "Vintage Coffee, Zuiderbuurt 14, Drachten",
+    "locations": [
+      {
+        "lat": 53.1062506,
+        "lng": 6.09801744,
+        "address": "Vintage Coffee, Zuiderbuurt 14, Drachten"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/high-tea-vintage-coffee-drachten-korting/2bab82.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
