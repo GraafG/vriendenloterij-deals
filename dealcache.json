@@ -13881,5 +13881,19 @@
     ],
     "image_url": "https://images.tripper.nl/entree-ticket-tierpark-nordhorn-korting/5a20a1.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": 37
+  },
+  "https://www.tripper.nl/deal/wasbeurt-vakgarage-dallinga-korting": {
+    "lat": 53.31757985,
+    "lng": 6.92380628,
+    "address": "Vakgarage Dallinga, Rondeboslaan 11, Farmsum",
+    "locations": [
+      {
+        "lat": 53.31757985,
+        "lng": 6.92380628,
+        "address": "Vakgarage Dallinga, Rondeboslaan 11, Farmsum"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/wasbeurt-vakgarage-dallinga-korting/a477ae.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
