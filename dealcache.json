@@ -13965,5 +13965,47 @@
     ],
     "image_url": "https://images.tripper.nl/tickets-toppers-in-concert-2026-korting/b10119.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": 13
+  },
+  "https://www.tripper.nl/deal/weekend-overnachten-accommodatie-duinrell-korting": {
+    "lat": 52.146628,
+    "lng": 4.384499,
+    "address": "Duinrell, Duinrell  1, Wassenaar",
+    "locations": [
+      {
+        "lat": 52.146628,
+        "lng": 4.384499,
+        "address": "Duinrell, Duinrell  1, Wassenaar"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/weekend-overnachten-accommodatie-duinrell-korting/324531.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 118
+  },
+  "https://www.tripper.nl/deal/rondvaart-onbeperkt-pizza-cruise-rotterdam-korting": {
+    "lat": 51.904376749927856,
+    "lng": 4.4661517576722485,
+    "address": "Pizza Cruise Rotterdam, Parkhaven 15, Rotterdam",
+    "locations": [
+      {
+        "lat": 51.904376749927856,
+        "lng": 4.4661517576722485,
+        "address": "Pizza Cruise Rotterdam, Parkhaven 15, Rotterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/rondvaart-onbeperkt-pizza-cruise-rotterdam-korting/0690d1.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/short-golf-het-rijk-van-margraten-korting": {
+    "lat": 50.8384499,
+    "lng": 5.75745993,
+    "address": "Golfbaan Het Rijk van Margraten, Bemelerweg 99, Cadier en Keer",
+    "locations": [
+      {
+        "lat": 50.8384499,
+        "lng": 5.75745993,
+        "address": "Golfbaan Het Rijk van Margraten, Bemelerweg 99, Cadier en Keer"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/short-golf-het-rijk-van-margraten-korting/80657e.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
