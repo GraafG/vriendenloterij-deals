@@ -180,10 +180,84 @@ let markers = [];
 let expandedUrl = null;
 let currentView = 'table';
 let _colCount = null;
+let _isApplyingUrlState = false;
 
 window.addEventListener('resize', () => { _colCount = null; });
 
 const TRIPPER_REF = 'F28D4VGY';
+const VALID_EXPIRED_FILTERS = new Set(['active', 'all', 'expired']);
+const VALID_VIEWS = new Set(['table', 'map', 'split']);
+
+function readUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    q: params.get('q') || params.get('search') || '',
+    date: params.get('date') || '',
+    location: params.get('location') || params.get('loc') || '',
+    status: params.get('status') || params.get('expired') || '',
+    view: params.get('view') || '',
+    sort: params.get('sort') || '',
+    dir: params.get('dir') || '',
+  };
+}
+
+function updateUrlState({ replace = true } = {}) {
+  if (_isApplyingUrlState) return;
+
+  const picker = document.getElementById('date-picker');
+  const searchBox = document.getElementById('search-box');
+  const locationFilter = document.getElementById('location-filter');
+  const params = new URLSearchParams();
+
+  const q = searchBox.value.trim();
+  if (q) params.set('q', q);
+  if (picker.value && picker.selectedIndex > 0) params.set('date', picker.value);
+  if (locationFilter.value) params.set('location', locationFilter.value);
+  if (expiredFilter !== 'active') params.set('status', expiredFilter);
+  if (currentView !== 'table') params.set('view', currentView);
+  if (sortCol !== 'discount_num') params.set('sort', sortCol);
+  if (sortAsc) params.set('dir', 'asc');
+
+  const query = params.toString();
+  const nextUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
+  if (nextUrl === window.location.pathname + window.location.search + window.location.hash) return;
+
+  window.history[replace ? 'replaceState' : 'pushState'](null, '', nextUrl);
+}
+
+function applyUrlStateToControls(state) {
+  _isApplyingUrlState = true;
+
+  document.getElementById('search-box').value = state.q || '';
+
+  expiredFilter = VALID_EXPIRED_FILTERS.has(state.status) ? state.status : 'active';
+  document.getElementById('expired-filter').value = expiredFilter;
+
+  if (state.location) {
+    const locationFilter = document.getElementById('location-filter');
+    locationFilter.value = [...locationFilter.options].some(opt => opt.value === state.location) ? state.location : '';
+  } else {
+    document.getElementById('location-filter').value = '';
+  }
+
+  if (state.sort) sortCol = state.sort;
+  sortAsc = state.dir === 'asc';
+
+  _isApplyingUrlState = false;
+}
+
+function applyUrlStateAfterDataLoad(state) {
+  applyUrlStateToControls(state);
+  const nextView = VALID_VIEWS.has(state.view) ? state.view : 'table';
+  if (nextView === currentView) {
+    renderTable();
+    renderStats();
+    if (map) renderMap(false);
+  } else {
+    showView(nextView);
+  }
+  updateUrlState();
+}
 
 function dataPathForDate(dateStr) {
   const [year, month, day] = dateStr.split('-');
@@ -199,6 +273,7 @@ function getSlug(url) {
 
 async function init() {
   try {
+    const initialUrlState = readUrlState();
     const [indexRes, histRes] = await Promise.all([
       fetch(DATA_BASE + '/data/index.json'),
       fetch(DATA_BASE + '/data/history.json').catch(() => null),
@@ -210,11 +285,11 @@ async function init() {
     dates.forEach((d, i) => {
       const opt = document.createElement('option');
       opt.value = d; opt.textContent = d;
-      if (i === 0) opt.selected = true;
+      if (initialUrlState.date ? d === initialUrlState.date : i === 0) opt.selected = true;
       picker.appendChild(opt);
     });
-    picker.addEventListener('change', () => loadDate(picker.value));
-    if (dates.length) loadDate(dates[0]);
+    picker.addEventListener('change', () => loadDate(picker.value, readUrlState(), { updateUrl: true }));
+    if (dates.length) loadDate(picker.value || dates[0], initialUrlState);
     else document.getElementById('loading').textContent = 'Geen data beschikbaar.';
   } catch (e) {
     document.getElementById('loading').textContent = 'Fout bij laden van data.';
@@ -222,7 +297,7 @@ async function init() {
   }
 }
 
-async function loadDate(dateStr) {
+async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false } = {}) {
   document.getElementById('loading').style.display = 'block';
   try {
     const res = await fetch(dataPathForDate(dateStr));
@@ -283,9 +358,8 @@ async function loadDate(dateStr) {
 
     expandedUrl = null;
     populateLocationFilter();
-    renderStats();
-    renderTable();
-    if (map) renderMap(true);
+    applyUrlStateAfterDataLoad(urlState);
+    if (updateUrl) updateUrlState({ replace: false });
   } catch (e) {
     document.getElementById('loading').textContent = 'Fout bij laden van deals.';
     console.error(e);
@@ -485,13 +559,33 @@ document.querySelectorAll('#deals-table th[data-col]').forEach(th => {
     const col = th.dataset.col;
     if (sortCol === col) sortAsc = !sortAsc;
     else { sortCol = col; sortAsc = true; }
-    renderTable(); renderStats();
+    renderTable(); renderStats(); updateUrlState();
   });
 });
 
-document.getElementById('search-box').addEventListener('input', () => { expandedUrl = null; renderTable(); renderStats(); if (map) renderMap(false); });
-document.getElementById('location-filter').addEventListener('change', () => { expandedUrl = null; renderTable(); renderStats(); if (map) renderMap(false); });
-document.getElementById('expired-filter').addEventListener('change', e => { expiredFilter = e.target.value; expandedUrl = null; renderTable(); renderStats(); if (map) renderMap(false); });
+function rerenderForFilterChange() {
+  expandedUrl = null;
+  renderTable();
+  renderStats();
+  if (map) renderMap(false);
+  updateUrlState();
+}
+
+document.getElementById('search-box').addEventListener('input', rerenderForFilterChange);
+document.getElementById('location-filter').addEventListener('change', rerenderForFilterChange);
+document.getElementById('expired-filter').addEventListener('change', e => { expiredFilter = e.target.value; rerenderForFilterChange(); });
+
+window.addEventListener('popstate', () => {
+  const state = readUrlState();
+  const picker = document.getElementById('date-picker');
+  const requestedDate = state.date || picker.options[0]?.value || '';
+  if (requestedDate && requestedDate !== picker.value && [...picker.options].some(opt => opt.value === requestedDate)) {
+    picker.value = requestedDate;
+    loadDate(requestedDate, state);
+  } else {
+    applyUrlStateAfterDataLoad(state);
+  }
+});
 
 let _leafletLoading = null;
 
@@ -538,6 +632,8 @@ function showView(view) {
     tableContainer.style.display = view === 'table' ? 'block' : 'none';
     mapContainer.style.display = view === 'map' ? 'block' : 'none';
   }
+
+  updateUrlState();
 
   if (view === 'map' || view === 'split') {
     const isNew = !map;
