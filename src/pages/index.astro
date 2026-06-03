@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE_URL } from '../lib/config';
+import { SITE_URL, TRIPPER_REF } from '../lib/config';
 import { getAllDealDetails } from '../lib/deals';
 
 const site = SITE_URL;
@@ -64,7 +64,7 @@ const homepageJsonLd = [
       Vind de beste <span class="accent">reis- en vakantiedeals</span>, vergelijk prijzen en mis nooit meer een aanbieding.
     </p>
 
-    <a href="https://www.tripper.nl/?ref=F28D4VGY" target="_blank" rel="sponsored nofollow noopener noreferrer" class="referral-banner">
+    <a href={`https://www.tripper.nl/?ref=${TRIPPER_REF}`} target="_blank" rel="sponsored nofollow noopener noreferrer" class="referral-banner">
       🎁 <strong>Nieuw bij Tripper?</strong> Registreer via onze link en ontvang <strong>€2,50 korting</strong> na je eerste aankoop — binnen 14 dagen op je account. <span class="referral-cta">Aanmelden ↗</span>
     </a>
 
@@ -178,13 +178,13 @@ const homepageJsonLd = [
     </div>
     <div class="footer-bottom">
       <p class="footer-disclaimer">⚠️ Tripper Deals is een onafhankelijk overzicht. Prijzen en beschikbaarheid kunnen afwijken. Controleer altijd bij de aanbieder.</p>
-      <p class="footer-disclaimer">🔗 Links naar tripper.nl bevatten onze persoonlijke referral-code (<code>?ref=F28D4VGY</code>). Bij een aankoop via deze links kunnen wij Tripper-spaarpunten ontvangen, zonder extra kosten voor jou.</p>
+      <p class="footer-disclaimer">🔗 Links naar tripper.nl bevatten onze persoonlijke referral-code (<code>?ref={TRIPPER_REF}</code>). Bij een aankoop via deze links kunnen wij Tripper-spaarpunten ontvangen, zonder extra kosten voor jou.</p>
       <p class="footer-copyright">© {new Date().getFullYear()} Tripper Deals. Alle rechten voorbehouden.</p>
     </div>
   </div>
 </footer>
 
-<script is:inline>
+<script is:inline define:vars={{ TRIPPER_REF }}>
 // Read base URL injected by Astro in the <meta name="site-base"> tag.
 const DATA_BASE = (document.querySelector('meta[name="site-base"]')?.content || '/').replace(/\/$/, '');
 
@@ -203,7 +203,6 @@ let _isApplyingUrlState = false;
 
 window.addEventListener('resize', () => { _colCount = null; });
 
-const TRIPPER_REF = 'F28D4VGY';
 const DEFAULT_DOCUMENT_TITLE = document.title;
 const VALID_EXPIRED_FILTERS = new Set(['active', 'all', 'expired']);
 const VALID_VIEWS = new Set(['table', 'map', 'split']);
