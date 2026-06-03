@@ -9906,7 +9906,14 @@
     "image_url": "https://images.tripper.nl/wasbeurt-tankstation-klaassens-korting/68fc3b.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
   },
-  "https://www.tripper.nl/deal/hotelmoment-2-personen-korting": null,
+  "https://www.tripper.nl/deal/hotelmoment-2-personen-korting": {
+    "lat": null,
+    "lng": null,
+    "address": "",
+    "locations": [],
+    "image_url": "https://images.tripper.nl/hotelmoment-waardebon-2-personen-korting/528046.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
   "https://www.tripper.nl/deal/overnachten-moederdag-duinrell-duingalow-korting": {
     "lat": 52.146628,
     "lng": 4.384499,
@@ -14062,6 +14069,118 @@
       }
     ],
     "image_url": "https://images.tripper.nl/entree-brandweermuseum-korting/1d4b85.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/pitch-putt-koffie-thee-landgoed-zwartemeer-korting": {
+    "lat": 52.72451869,
+    "lng": 7.03203484,
+    "address": "Landgoed Zwartemeer, Verlengde van Echtenskanaal NZ 2, Zwartemeer",
+    "locations": [
+      {
+        "lat": 52.72451869,
+        "lng": 7.03203484,
+        "address": "Landgoed Zwartemeer, Verlengde van Echtenskanaal NZ 2, Zwartemeer"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/pitch-putt-koffie-thee-landgoed-zwartemeer-korting/a6c4f9.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/glow-in-the-dark-midgetgolf-curling-landgoed-zwartemeer-korting": {
+    "lat": 52.72451869,
+    "lng": 7.03203484,
+    "address": "Landgoed Zwartemeer, Verlengde van Echtenskanaal NZ 2, Zwartemeer",
+    "locations": [
+      {
+        "lat": 52.72451869,
+        "lng": 7.03203484,
+        "address": "Landgoed Zwartemeer, Verlengde van Echtenskanaal NZ 2, Zwartemeer"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/glow-in-the-dark-midgetgolf-curling-landgoed-zwartemeer-korting/a69af8.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/zoete-mini-high-tea-bij-van-robuust-korting": {
+    "lat": 52.85985815,
+    "lng": 6.51513787,
+    "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen",
+    "locations": [
+      {
+        "lat": 52.85985815,
+        "lng": 6.51513787,
+        "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/zoete-mini-high-tea-bij-van-robuust-korting/b87d55.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/brunch-lunchbox-afhalen-van-robuust-korting": {
+    "lat": 52.85985815,
+    "lng": 6.51513787,
+    "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen",
+    "locations": [
+      {
+        "lat": 52.85985815,
+        "lng": 6.51513787,
+        "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/brunch-lunchbox-afhalen-van-robuust-korting/049e21.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/afhaal-boerenhapjesschaal-60-stuks-van-robuust-korting": {
+    "lat": 52.85985815,
+    "lng": 6.51513787,
+    "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen",
+    "locations": [
+      {
+        "lat": 52.85985815,
+        "lng": 6.51513787,
+        "address": "Van Robuust Koffie en Thee, Raadhuisstraat 1A3, Beilen"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/afhaal-boerenhapjesschaal-60-stuks-van-robuust-korting/40cd6b.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/ticket-big-bingo-show-deventer-korting": {
+    "lat": 52.24597044,
+    "lng": 6.16902403,
+    "address": "De Zwarte Silo, Zuiderzeestraat 2, Deventer",
+    "locations": [
+      {
+        "lat": 52.24597044,
+        "lng": 6.16902403,
+        "address": "De Zwarte Silo, Zuiderzeestraat 2, Deventer"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/ticket-big-bingo-show-deventer-korting/8bf835.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/entreeticket-museum-havezate-mensinge-korting": {
+    "lat": 53.13443151,
+    "lng": 6.43492381,
+    "address": "Museum Havezate Mensinge, Mensingheweg 7, Roden",
+    "locations": [
+      {
+        "lat": 53.13443151,
+        "lng": 6.43492381,
+        "address": "Museum Havezate Mensinge, Mensingheweg 7, Roden"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/entreeticket-museum-havezate-mensinge-korting/7d004c.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
+  "https://www.tripper.nl/deal/all-you-can-eat-tapas-de-rooie-kater-korting": {
+    "lat": 52.85736468,
+    "lng": 6.52120531,
+    "address": "De Rooie Kater, Stationslaan 2, Beilen",
+    "locations": [
+      {
+        "lat": 52.85736468,
+        "lng": 6.52120531,
+        "address": "De Rooie Kater, Stationslaan 2, Beilen"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/all-you-can-eat-tapas-de-rooie-kater-korting/722c83.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
   }
 }
