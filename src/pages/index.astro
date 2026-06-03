@@ -77,6 +77,16 @@ const homepageJsonLd = [
   <div class="stats-bar" id="stats-bar"></div>
 </main>
 
+<section class="container recent-drops-section" id="recent-drops-section" aria-labelledby="recent-drops-title" style="display: none;">
+  <div class="section-heading">
+    <div>
+      <h2 id="recent-drops-title">Gedaald in de laatste 3 dagen</h2>
+      <p id="recent-drops-summary"></p>
+    </div>
+  </div>
+  <div class="recent-drops-grid" id="recent-drops-grid"></div>
+</section>
+
 <section class="container">
   <div class="view-toggle" role="tablist">
     <button id="btn-table" class="active" onclick="showView('table')" role="tab" aria-selected="true">Tabel</button>
@@ -425,6 +435,109 @@ function getFiltered(forMap = false) {
   return deals;
 }
 
+function getSelectedDate() {
+  return document.getElementById('date-picker').value;
+}
+
+function dateDaysAgo(dateStr, days) {
+  const date = new Date(dateStr + 'T00:00:00Z');
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getRecentDrop(deal) {
+  const selectedDate = getSelectedDate();
+  if (!selectedDate) return null;
+
+  const cutoffDate = dateDaysAgo(selectedDate, 3);
+  const pts = (deal._history || [])
+    .filter(p => p.price != null && p.date <= selectedDate)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (pts.length < 2) return null;
+
+  let totalDrop = 0;
+  let firstDropDate = null;
+  let lastDropDate = null;
+  let fromPrice = null;
+  let toPrice = null;
+
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1];
+    const curr = pts[i];
+    if (curr.date < cutoffDate || curr.date > selectedDate) continue;
+    if (curr.price >= prev.price) continue;
+
+    const delta = +(prev.price - curr.price).toFixed(2);
+    totalDrop = +(totalDrop + delta).toFixed(2);
+    firstDropDate ??= curr.date;
+    lastDropDate = curr.date;
+    fromPrice ??= prev.price;
+    toPrice = curr.price;
+  }
+
+  if (totalDrop <= 0 || fromPrice == null || toPrice == null) return null;
+
+  return {
+    amount: totalDrop,
+    percent: fromPrice ? (totalDrop / fromPrice) * 100 : 0,
+    fromPrice,
+    toPrice,
+    firstDropDate,
+    lastDropDate,
+  };
+}
+
+function getRecentDropDeals(limit = 8) {
+  return getFiltered()
+    .filter(d => !d._expired)
+    .map(d => ({ deal: d, drop: getRecentDrop(d) }))
+    .filter(item => item.drop)
+    .sort((a, b) => b.drop.amount - a.drop.amount)
+    .slice(0, limit);
+}
+
+function renderRecentDrops() {
+  const section = document.getElementById('recent-drops-section');
+  const summary = document.getElementById('recent-drops-summary');
+  const grid = document.getElementById('recent-drops-grid');
+  const drops = getRecentDropDeals();
+
+  if (!drops.length) {
+    section.style.display = 'none';
+    grid.innerHTML = '';
+    summary.textContent = '';
+    return;
+  }
+
+  section.style.display = '';
+  const selectedDate = getSelectedDate();
+  const cutoffDate = dateDaysAgo(selectedDate, 3);
+  summary.textContent = `${drops.length} deal${drops.length !== 1 ? 's' : ''} met een prijsdaling sinds ${cutoffDate}`;
+
+  grid.innerHTML = drops.map(({ deal, drop }) => {
+    const slug = getSlug(deal.url);
+    const href = slug ? esc(DATA_BASE + '/deal/' + slug + '/') : safeUrl(deal.url);
+    const dateText = drop.firstDropDate === drop.lastDropDate
+      ? drop.lastDropDate
+      : `${drop.firstDropDate} t/m ${drop.lastDropDate}`;
+    return `<article class="drop-card">
+      <div class="drop-card-main">
+        <a href="${href}" class="drop-card-title">${esc(deal.name)}</a>
+        <span class="drop-card-meta">${esc(deal.location || deal.provider || '')}</span>
+      </div>
+      <div class="drop-card-price">
+        <span class="drop-amount">-&euro;${drop.amount.toFixed(2)}</span>
+        <span class="drop-percent">${drop.percent.toFixed(1)}%</span>
+      </div>
+      <div class="drop-card-footer">
+        <span><s>&euro;${drop.fromPrice.toFixed(2)}</s> &rarr; <strong>&euro;${drop.toPrice.toFixed(2)}</strong></span>
+        <span>${dateText}</span>
+      </div>
+    </article>`;
+  }).join('');
+}
+
 function renderStats() {
   const deals = getFiltered().filter(d => !d._expired);
   const prices = deals.map(d => d.discounted_price).filter(p => p != null);
@@ -442,6 +555,7 @@ function renderStats() {
     <div class="stat"><span class="stat-label">📉 Prijsdalingen</span><span class="stat-value">${priceDrops}</span></div>
     <div class="stat"><span class="stat-label">⭐ Op laagste prijs</span><span class="stat-value">${atLowest}</span></div>
   `;
+  renderRecentDrops();
 }
 
 function esc(s) {
