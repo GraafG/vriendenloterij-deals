@@ -14436,5 +14436,19 @@
     ],
     "image_url": "https://images.tripper.nl/minigolf-jungle-goolfy-korting/13789a.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": 7
+  },
+  "https://www.tripper.nl/deal/ticket-jeugdvakantieland-rotterdam-korting": {
+    "lat": 51.882891,
+    "lng": 4.488225,
+    "address": "Ahoy Rotterdam, Ahoyweg  10, Rotterdam",
+    "locations": [
+      {
+        "lat": 51.882891,
+        "lng": 4.488225,
+        "address": "Ahoy Rotterdam, Ahoyweg  10, Rotterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/ticket-jeugdvakantieland-rotterdam-korting/c022ea.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 94
   }
 }
