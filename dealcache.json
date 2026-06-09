@@ -14450,5 +14450,64 @@
     ],
     "image_url": "https://images.tripper.nl/ticket-jeugdvakantieland-rotterdam-korting/c022ea.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": 94
+  },
+  "https://www.tripper.nl/deal/play-city-game-korting": {
+    "lat": 52.372964,
+    "lng": 4.893375,
+    "address": "Startpunt - Amsterdam, De Dam, Amsterdam",
+    "locations": [
+      {
+        "lat": 52.372964,
+        "lng": 4.893375,
+        "address": "Startpunt - Amsterdam, De Dam, Amsterdam"
+      },
+      {
+        "lat": 51.98391,
+        "lng": 5.902368,
+        "address": "Startpunt - Arnhem, Stationsplein, Arnhem"
+      },
+      {
+        "lat": 51.923431,
+        "lng": 4.470372,
+        "address": "Startpunt - Rotterdam, Willemsplein, Rotterdam"
+      },
+      {
+        "lat": 52.0704978,
+        "lng": 4.3006999,
+        "address": "Startpunt - Den Haag, Plein, Den Haag"
+      },
+      {
+        "lat": 52.519506,
+        "lng": 13.406549,
+        "address": "Startpunt - Berlijn, Alexanderplatz, Berlijn"
+      },
+      {
+        "lat": 51.5031864,
+        "lng": 0.1195192,
+        "address": "Startpunt - Londen, Westminster Bridge Rd, Londen"
+      },
+      {
+        "lat": 48.8655842,
+        "lng": 2.3205491,
+        "address": "Startpunt - Parijs, Avenue des Champs-Élysées, Parijs"
+      },
+      {
+        "lat": 41.3747622,
+        "lng": 2.1784206,
+        "address": "Startpunt - Barcelona, Carrer de Margarit 44, Barcelona"
+      },
+      {
+        "lat": 52.0919255,
+        "lng": 5.1229572,
+        "address": "Startpunt - Utrecht, Jaarbeursplein, Utrecht"
+      },
+      {
+        "lat": 48.2080696,
+        "lng": 16.3713095,
+        "address": "Startpunt - Wenen, Stephansplatz, Wien"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/play-city-game-korting/39fb72.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
