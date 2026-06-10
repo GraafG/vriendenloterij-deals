@@ -1,0 +1,65 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_URL } from '../lib/config';
+import { getAllDealDetails } from '../lib/deals';
+import { isHotelDeal } from '../lib/categorize';
+
+const canonical = `${SITE_URL}/hotels/`;
+
+const deals = getAllDealDetails()
+  .filter(d => d.isActive && isHotelDeal(d))
+  .sort((a, b) => (b.discount_num ?? 0) - (a.discount_num ?? 0));
+
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Hotels &amp; verblijven — Tripper Deals"
+  description="Vakantieaanbiedingen voor hotels, vakantieparken, resorts, lodges, camping en bungalows op Tripper.nl."
+  canonical={canonical}
+  ogType="website"
+>
+  <main id="main" class="container" style="max-width:960px;padding:2rem 1rem 4rem;">
+    <p><a href={base}>← Terug naar overzicht</a></p>
+
+    <h1>🏨 Hotels &amp; verblijven</h1>
+    <p class="lead">
+      Tripper.nl deals voor overnachtingen: hotels, vakantieparken, resorts, lodges, camping en
+      bungalows. {deals.length} actieve aanbiedingen, gesorteerd op kortings&shy;percentage.
+    </p>
+
+    {deals.length === 0 ? (
+      <p><em>Geen actieve verblijven gevonden.</em></p>
+    ) : (
+      <ul class="deal-card-list" style="list-style:none;padding:0;">
+        {deals.map(d => (
+          <li style="margin-bottom:1.25rem;padding:1rem;border:1px solid #e5e7eb;border-radius:8px;">
+            <a href={`${base}deal/${d.slug}/`} style="font-weight:600;font-size:1.05rem;">
+              {d.name}
+            </a>
+            {d.location && <p style="margin:0.25rem 0;color:#6b7280;font-size:0.9rem;">{d.location}</p>}
+            <p style="margin:0.5rem 0 0;font-size:0.95rem;">
+              {d.discounted_price != null && (
+                <strong>€{d.discounted_price.toFixed(2)}</strong>
+              )}
+              {d.original_price != null && d.original_price !== d.discounted_price && (
+                <span style="color:#6b7280;text-decoration:line-through;margin-left:0.5rem;">
+                  €{d.original_price.toFixed(2)}
+                </span>
+              )}
+              {d.discount && (
+                <span style="margin-left:0.5rem;color:#dc2626;font-weight:600;">{d.discount} korting</span>
+              )}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <hr style="margin:2rem 0;" />
+    <p>
+      Zie ook: <a href={`${base}dagjes-uit/`}>dagjes uit</a>,
+      <a href={`${base}prijsdalingen/`}> recente prijsdalingen</a>,
+      <a href={`${base}laagste-prijs/`}> deals op laagste prijs</a>.
+    </p>
+  </main>
+</Base>

@@ -462,3 +462,60 @@ tr.deal-expired td:first-child { position: relative; }
 .expired-badge { display: inline-block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--gray-200); color: var(--gray-500); padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.4rem; vertical-align: middle; }
 tr.deal-expired .price-deal { text-decoration: line-through; color: var(--gray-400); }
 
+
+/* ---- Network cross-link section ---- */
+.network-section {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+.network-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.network-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  color: var(--gray-700);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.network-card:hover {
+  border-color: var(--primary-300, #fca5a5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+.network-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.network-card-emoji { font-size: 1.4rem; line-height: 1; }
+.network-card h3 {
+  font-size: 1.05rem;
+  color: var(--gray-900);
+  margin: 0;
+}
+.network-card-arrow {
+  color: var(--gray-400);
+  font-weight: 500;
+  margin-left: 0.15rem;
+}
+.network-card-tag {
+  color: var(--primary-600);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.5rem 0;
+}
+.network-card p:last-child {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

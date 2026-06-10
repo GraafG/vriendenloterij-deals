@@ -1,0 +1,72 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_URL } from '../lib/config';
+import { getAllDealDetails } from '../lib/deals';
+import { isPriceDrop, lastChangeDate } from '../lib/categorize';
+
+const canonical = `${SITE_URL}/prijsdalingen/`;
+
+const deals = getAllDealDetails()
+  .filter(isPriceDrop)
+  .sort((a, b) => lastChangeDate(b).localeCompare(lastChangeDate(a)))
+  .slice(0, 50);
+
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Prijsdalingen — Tripper Deals"
+  description="Tripper.nl vakantieaanbiedingen waarvan de prijs recent is verlaagd. Sorteert op meest recente daling."
+  canonical={canonical}
+  ogType="website"
+>
+  <main id="main" class="container" style="max-width:960px;padding:2rem 1rem 4rem;">
+    <p><a href={base}>← Terug naar overzicht</a></p>
+
+    <h1>📉 Recente prijsdalingen</h1>
+    <p class="lead">
+      Vakantie- en reisdeals op Tripper.nl waarvan we de prijs de afgelopen dagen omlaag zagen
+      gaan. Tot {deals.length} deals, gesorteerd op meest recente daling.
+    </p>
+
+    {deals.length === 0 ? (
+      <p><em>Op dit moment geen prijsdalingen genoteerd. Kom morgen terug, of bekijk
+        <a href={`${base}laagste-prijs/`}> deals op laagste prijs</a>.</em></p>
+    ) : (
+      <ul class="deal-card-list" style="list-style:none;padding:0;">
+        {deals.map(d => (
+          <li style="margin-bottom:1.25rem;padding:1rem;border:1px solid #e5e7eb;border-radius:8px;">
+            <a href={`${base}deal/${d.slug}/`} style="font-weight:600;font-size:1.05rem;">
+              {d.name}
+            </a>
+            {d.location && <p style="margin:0.25rem 0;color:#6b7280;font-size:0.9rem;">{d.location}</p>}
+            <p style="margin:0.5rem 0 0;font-size:0.95rem;">
+              {d.discounted_price != null && (
+                <strong>€{d.discounted_price.toFixed(2)}</strong>
+              )}
+              {d.original_price != null && d.original_price !== d.discounted_price && (
+                <span style="color:#6b7280;text-decoration:line-through;margin-left:0.5rem;">
+                  €{d.original_price.toFixed(2)}
+                </span>
+              )}
+              {d.discount && (
+                <span style="margin-left:0.5rem;color:#dc2626;font-weight:600;">{d.discount} korting</span>
+              )}
+              {lastChangeDate(d) && (
+                <span style="margin-left:0.5rem;color:#6b7280;font-size:0.85rem;">
+                  laatste wijziging: {lastChangeDate(d)}
+                </span>
+              )}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <hr style="margin:2rem 0;" />
+    <p>
+      Zie ook: <a href={`${base}laagste-prijs/`}>deals op hun laagste prijs ooit</a>,
+      <a href={`${base}hotels/`}> hotels &amp; verblijven</a>,
+      <a href={`${base}dagjes-uit/`}> dagjes uit</a>.
+    </p>
+  </main>
+</Base>

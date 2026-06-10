@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_URL, TRIPPER_REF } from '../lib/config';
+
+const canonical = `${SITE_URL}/over/`;
+---
+<Base
+  title="Over Tripper Deals — Hoe het werkt"
+  description="Tripper Deals is een onafhankelijk overzicht van vakantieaanbiedingen op Tripper.nl. Lees hoe we deals scrapen, prijzen volgen en wat de affiliate-link betekent."
+  canonical={canonical}
+  ogType="article"
+>
+  <main id="main" class="container" style="max-width:760px;padding:2rem 1rem 4rem;">
+    <p><a href={import.meta.env.BASE_URL}>← Terug naar overzicht</a></p>
+
+    <h1>Over Tripper Deals</h1>
+    <p class="lead">
+      Tripper Deals is een onafhankelijk overzicht van alle vakantie- en reisdeals die op
+      <a href="https://www.tripper.nl/" rel="noopener noreferrer">Tripper.nl</a> staan, met
+      prijsverloop, trends en een kaart. Geen account, geen cookies, geen nieuwsbrief.
+    </p>
+
+    <h2>Hoe komt deze lijst tot stand?</h2>
+    <p>
+      Een Python-scraper draait dagelijks via een GitHub Actions workflow. Hij vraagt de
+      publieke Tripper.nl deal-pagina&apos;s op, leest naam, locatie, prijs en korting, en
+      slaat het resultaat op als een JSON-snapshot per dag. De website wordt vervolgens opnieuw
+      gebouwd met Astro en als statische HTML naar GitHub Pages gepubliceerd.
+    </p>
+    <p>
+      Doordat elke dag een snapshot wordt bewaard, kunnen we per deal het prijsverloop tonen,
+      een trend (stijgend, dalend, stabiel) berekenen, en aangeven of een deal momenteel op zijn
+      laagste tot nu toe gemeten prijs staat.
+    </p>
+
+    <h2>Wat zie je per deal?</h2>
+    <ul>
+      <li><strong>Huidige prijs &amp; korting</strong> — overgenomen van de Tripper-pagina.</li>
+      <li><strong>Trend</strong> — vergelijkt de prijs van vandaag met die van de afgelopen dagen.</li>
+      <li><strong>📉 Prijsdalingen</strong> — aantal keer dat de prijs sinds eerste meting is verlaagd.</li>
+      <li><strong>⭐ Op laagste prijs</strong> — als de huidige prijs gelijk is aan de laagste ooit gemeten prijs voor deze deal.</li>
+      <li><strong>Prijsgrafiek</strong> — een mini-grafiek met het prijsverloop op de detailpagina.</li>
+      <li><strong>Kaart</strong> — locatie van de aanbieder waar relevant.</li>
+    </ul>
+
+    <h2>Hoe accuraat is het?</h2>
+    <p>
+      We pakken de data één keer per dag. Tripper.nl kan tussentijds de prijs aanpassen of een
+      deal verwijderen. Vergelijk daarom altijd de definitieve prijs op de detail-pagina van
+      Tripper.nl zelf voordat je boekt. We tonen een &ldquo;verlopen&rdquo; badge zodra een
+      deal niet meer in de meest recente snapshot voorkomt.
+    </p>
+
+    <h2>Verdienen jullie hieraan?</h2>
+    <p>
+      Iedere externe link op deze site naar tripper.nl krijgt onze persoonlijke referral-code
+      <code>?ref={TRIPPER_REF}</code>. Boek je iets via die link, dan kunnen wij Tripper-
+      spaarpunten ontvangen. Voor jou is er geen prijsverschil. Lees meer in onze
+      <a href={`${import.meta.env.BASE_URL}privacy/`}>privacy &amp; affiliate-disclosure</a>.
+    </p>
+
+    <h2>Open source</h2>
+    <p>
+      De scraper, de site en de scripts staan open op{' '}
+      <a href="https://github.com/graafg/tripper-deals" target="_blank" rel="noopener noreferrer">
+        GitHub
+      </a>. Bug gespot of suggestie? Open een issue.
+    </p>
+
+    <h2>Andere besparingstips</h2>
+    <p>
+      Tripper Deals maakt deel uit van een klein netwerk:
+    </p>
+    <ul>
+      <li>
+        <a href="https://ahlert.nl/" target="_blank" rel="noopener noreferrer">AHlert</a> —
+        Albert Heijn Laatste Kans koopjes
+      </li>
+      <li>
+        <a href="https://free4me.nl/" target="_blank" rel="noopener noreferrer">Free4me.nl</a> —
+        gratis kortingen, cashback en referrals
+      </li>
+    </ul>
+  </main>
+</Base>
