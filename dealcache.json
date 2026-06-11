@@ -893,7 +893,14 @@
     "image_url": "https://images.tripper.nl/verblijf-week-weekend-rcn-de-roggeberg-korting/bbd5b4.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
   },
-  "https://www.tripper.nl/deal/meerdaagse-trein-reis-praag-korting": null,
+  "https://www.tripper.nl/deal/meerdaagse-trein-reis-praag-korting": {
+    "lat": null,
+    "lng": null,
+    "address": "",
+    "locations": [],
+    "image_url": "https://images.tripper.nl/meerdaagse-trein-reis-praag-korting/f0aacc.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
   "https://www.tripper.nl/deal/retourvlucht-binnen-europa-korting": null,
   "https://www.tripper.nl/deal/waardebon-wehkamp-korting": null,
   "https://www.tripper.nl/deal/box-dunkin-donuts-korting": {
@@ -1316,7 +1323,14 @@
     "image_url": "https://images.tripper.nl/attractiepark-bobbejaanland-ticket-korting/90fa70.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": 57
   },
-  "https://www.tripper.nl/deal/meerdaagse-trein-reis-berlijn-korting": null,
+  "https://www.tripper.nl/deal/meerdaagse-trein-reis-berlijn-korting": {
+    "lat": null,
+    "lng": null,
+    "address": "",
+    "locations": [],
+    "image_url": "https://images.tripper.nl/meerdaagse-trein-reis-berlijn-korting/8f3829.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
+  },
   "https://www.tripper.nl/deal/entreeticket-bij-zoo-damneville-korting": {
     "lat": 49.24437,
     "lng": 6.13584,
@@ -14537,5 +14551,47 @@
     ],
     "image_url": "https://images.tripper.nl/high-tea-lunchroom-ijtsma-korting/76775e.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
+  },
+  "https://www.tripper.nl/deal/entree-ticket-falcon-crest-korting": {
+    "lat": 51.49383,
+    "lng": 5.49607,
+    "address": "Falconcrest, Eindhovenseweg 44, Eindhoven",
+    "locations": [
+      {
+        "lat": 51.49383,
+        "lng": 5.49607,
+        "address": "Falconcrest, Eindhovenseweg 44, Eindhoven"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/entree-ticket-falcon-crest-korting/ccdb51.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 5
+  },
+  "https://www.tripper.nl/deal/ticket-glow-minigolf-aloha-amsterdam-korting": {
+    "lat": 52.37778,
+    "lng": 4.90908,
+    "address": "Aloha, De Ruijterkade  151, Amsterdam",
+    "locations": [
+      {
+        "lat": 52.37778,
+        "lng": 4.90908,
+        "address": "Aloha, De Ruijterkade  151, Amsterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/glow-minigolf-aloha-amsterdam-korting/d30066.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 14
+  },
+  "https://www.tripper.nl/deal/karaoke-aloha-amsterdam-korting": {
+    "lat": 52.37778,
+    "lng": 4.90908,
+    "address": "Aloha, De Ruijterkade  151, Amsterdam",
+    "locations": [
+      {
+        "lat": 52.37778,
+        "lng": 4.90908,
+        "address": "Aloha, De Ruijterkade  151, Amsterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/karaoke-aloha-amsterdam-korting/5cd376.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 14
   }
 }
