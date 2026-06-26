@@ -15226,5 +15226,19 @@
     ],
     "image_url": "https://images.tripper.nl/lunch-broodje-beach-barn-korting/e04f86.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
+  },
+  "https://www.tripper.nl/deal/dineren-de-beren-amsterdam-noord-korting": {
+    "lat": 52.4006274,
+    "lng": 4.93463807,
+    "address": "Restaurant De Beren Amsterdam - Noord, Buikslotermeerplein 2001, Amsterdam",
+    "locations": [
+      {
+        "lat": 52.4006274,
+        "lng": 4.93463807,
+        "address": "Restaurant De Beren Amsterdam - Noord, Buikslotermeerplein 2001, Amsterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/dineren-de-beren-amsterdam-noord-korting/4a5b12.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": 4
   }
 }
