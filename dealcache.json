@@ -15429,5 +15429,19 @@
     ],
     "image_url": "https://images.tripper.nl/ticket-klimmen-klimschoenen-apex-boulders-korting/b16699.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
     "review_count": null
+  },
+  "https://www.tripper.nl/deal/entreeticket-miniatuur-museum-amsterdam-korting": {
+    "lat": 52.35957999,
+    "lng": 4.88318559,
+    "address": "Miniatuur Museum Amsterdam, Paulus Potterstraat 8, Amsterdam",
+    "locations": [
+      {
+        "lat": 52.35957999,
+        "lng": 4.88318559,
+        "address": "Miniatuur Museum Amsterdam, Paulus Potterstraat 8, Amsterdam"
+      }
+    ],
+    "image_url": "https://images.tripper.nl/entreeticket-miniatuur-museum-amsterdam-korting/fc048f.jpg?auto=format&auto=enhance&fit=crop&w=600&h=315",
+    "review_count": null
   }
 }
