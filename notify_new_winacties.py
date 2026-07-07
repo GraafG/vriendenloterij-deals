@@ -48,6 +48,48 @@ def post_notification(url, token, items):
     response.raise_for_status()
 
 
+def create_new_wiki_issue(repo, token, items):
+    if not token:
+        raise RuntimeError('NEW_WIKI_GITHUB_TOKEN is required to create issues in new-wiki')
+    title = f"Nieuwe VriendenLoterij winactie{'s' if len(items) != 1 else ''}: {len(items)}"
+    lines = [
+        'Nieuwe VriendenLoterij VIP-KAART winactie(s) gedetecteerd:',
+        '',
+    ]
+    for item in items:
+        lines.extend([
+            f"- [{item.get('name')}]({item.get('url')})",
+            f"  - Label: {item.get('label') or 'n/a'}",
+            f"  - Locatie: {item.get('provider') or 'n/a'} ({item.get('location') or 'n/a'})",
+            f"  - Periode: {item.get('start_date') or 'n/a'} t/m {item.get('end_date') or 'n/a'}",
+            f"  - Categorieen: {', '.join(item.get('categories') or []) or 'n/a'}",
+        ])
+    response = requests.post(
+        f'https://api.github.com/repos/{repo}/issues',
+        headers={
+            'Authorization': f'Bearer {token}',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'User-Agent': 'vriendenloterij-deals-watch',
+        },
+        json={'title': title, 'body': '\n'.join(lines), 'labels': ['watch']},
+        timeout=30,
+    )
+    if response.status_code == 422:
+        response = requests.post(
+            f'https://api.github.com/repos/{repo}/issues',
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+                'User-Agent': 'vriendenloterij-deals-watch',
+            },
+            json={'title': title, 'body': '\n'.join(lines)},
+            timeout=30,
+        )
+    response.raise_for_status()
+
+
 def compact_item(deal):
     return {
         'id': deal.get('id'),
@@ -79,10 +121,16 @@ def main():
             print(json.dumps(new_items, ensure_ascii=False, indent=2))
         else:
             webhook_url = os.environ.get('NEW_WIKI_WEBHOOK_URL')
-            if not webhook_url:
-                raise RuntimeError('NEW_WIKI_WEBHOOK_URL is required when new winacties are detected')
-            post_notification(webhook_url, os.environ.get('NEW_WIKI_WEBHOOK_TOKEN'), new_items)
-            print(f'Posted {len(new_items)} winactie notification(s) to new-wiki')
+            if webhook_url:
+                post_notification(webhook_url, os.environ.get('NEW_WIKI_WEBHOOK_TOKEN'), new_items)
+                print(f'Posted {len(new_items)} winactie webhook notification(s) to new-wiki')
+            else:
+                create_new_wiki_issue(
+                    os.environ.get('NEW_WIKI_REPO', 'GraafG/new-wiki'),
+                    os.environ.get('NEW_WIKI_GITHUB_TOKEN'),
+                    new_items,
+                )
+                print(f'Created new-wiki issue for {len(new_items)} winactie notification(s)')
 
     if not args.dry_run:
         for deal in winacties:
