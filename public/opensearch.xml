@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-  <ShortName>Tripper Deals</ShortName>
-  <Description>Zoek in vakantie- en reisaanbiedingen op Tripper Deals.</Description>
+  <ShortName>VriendenLoterij Deals</ShortName>
+  <Description>Zoek in VIP-KAART aanbiedingen, winacties en kortingen.</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Language>nl-nl</Language>
-  <Image height="16" width="16" type="image/svg+xml">https://graafg.github.io/tripper-deals/favicon.svg</Image>
-  <Url type="text/html" method="get" template="https://graafg.github.io/tripper-deals/?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://graafg.github.io/tripper-deals/opensearch.xml"/>
-  <moz:SearchForm xmlns:moz="http://www.mozilla.org/2006/browser/search/">https://graafg.github.io/tripper-deals/</moz:SearchForm>
+  <Image height="16" width="16" type="image/svg+xml">https://graafg.github.io/vriendenloterij-deals/favicon.svg</Image>
+  <Url type="text/html" method="get" template="https://graafg.github.io/vriendenloterij-deals/?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://graafg.github.io/vriendenloterij-deals/opensearch.xml"/>
+  <moz:SearchForm xmlns:moz="http://www.mozilla.org/2006/browser/search/">https://graafg.github.io/vriendenloterij-deals/</moz:SearchForm>
 </OpenSearchDescription>

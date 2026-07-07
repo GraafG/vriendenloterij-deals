@@ -1,0 +1,50 @@
+name: Notify New Winacties
+
+on:
+  schedule:
+    # Workdays 08:00-18:00 Europe/Amsterdam during summer time (UTC 06:00-16:59).
+    - cron: '*/30 6-16 * * 1-5'
+    # Broader low-frequency safety net outside that window.
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notify-new-winacties
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Detect and notify new winacties
+        run: python notify_new_winacties.py
+        env:
+          NEW_WIKI_WEBHOOK_URL: ${{ secrets.NEW_WIKI_WEBHOOK_URL }}
+          NEW_WIKI_WEBHOOK_TOKEN: ${{ secrets.NEW_WIKI_WEBHOOK_TOKEN }}
+
+      - name: Commit notification state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/notified_winacties.json
+          if git diff --cached --quiet; then
+            echo "No notification state changes"
+          else
+            git commit -m "Update notified winacties state"
+            git pull --rebase origin main
+            git push
+          fi

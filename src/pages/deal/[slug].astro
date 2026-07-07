@@ -1,12 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getAllDealDetails, getSlug } from '../../lib/deals';
+import { getAllDealDetails, formatDateTime } from '../../lib/deals';
 import type { DealDetail } from '../../lib/deals';
-import { SITE_URL, TRIPPER_REF } from '../../lib/config';
+import { SITE_URL } from '../../lib/config';
 
 export async function getStaticPaths() {
-  const deals = getAllDealDetails();
-  return deals
+  return getAllDealDetails()
     .filter(d => d.slug)
     .map(d => ({ params: { slug: d.slug }, props: { deal: d } }));
 }
@@ -16,317 +15,162 @@ const { deal } = Astro.props;
 
 const site = SITE_URL;
 const canonical = `${site}/deal/${deal.slug}/`;
-
-function tripperUrl(url: string) {
-  try {
-    const u = new URL(url);
-    u.searchParams.set('ref', TRIPPER_REF);
-    return u.toString();
-  } catch { return url; }
-}
-
-const h = deal.history;
-const currentPrice = deal.discounted_price ?? h?.current_price;
-const originalPrice = deal.original_price ?? (h?.prices?.at(-1)?.original);
-
-const titlePrice = currentPrice != null ? ` - prijs vanaf €${currentPrice.toFixed(2)}` : '';
-const pageTitle = `${deal.name}${titlePrice} | Tripper Deals`;
+const pageTitle = `${deal.name} | VriendenLoterij Deals`;
 const metaDesc = [
-  deal.discount_num ? `${deal.discount_num}% korting` : deal.discount ?? '',
-  originalPrice != null && currentPrice != null ? `van €${originalPrice.toFixed(2)} voor €${currentPrice.toFixed(2)}` : '',
-  deal.provider ? `bij ${deal.provider}` : '',
+  deal.label,
   deal.location ? `in ${deal.location}` : '',
-  deal.locations.length > 1 ? `(${deal.locations.length} locaties)` : '',
-  h ? `Gevolgd sinds ${h.first_seen}.` : '',
+  deal.provider ? `bij ${deal.provider}` : '',
+  deal.end_date ? `geldig tot ${deal.end_date}` : '',
 ].filter(Boolean).join(' ');
 
-const ogImage = deal.isActive
-  ? (deal.image_url || `${site}/og/${deal.slug}.png`)
-  : undefined;
-
-// Parse rating string like "4.8 / 5" into schema values
-let ratingValue: number | undefined;
-let bestRating: number | undefined;
-const ratingMatch = deal.rating?.match(/(\d+(?:[.,]\d+)?)\s*\/\s*(\d+)/);
-if (ratingMatch) {
-  ratingValue = parseFloat(ratingMatch[1].replace(',', '.'));
-  bestRating  = parseFloat(ratingMatch[2]);
-}
-
-// JSON-LD: BreadcrumbList + Product
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Tripper Deals', item: site + '/' },
-      { '@type': 'ListItem', position: 2, name: deal.name, item: canonical },
-    ],
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: deal.name,
-    url: canonical,
-    description: metaDesc || undefined,
-    image: deal.image_url || undefined,
-    brand: deal.provider ? { '@type': 'Brand', name: deal.provider } : undefined,
-    aggregateRating: ratingValue != null && deal.review_count != null ? {
-      '@type': 'AggregateRating',
-      ratingValue,
-      bestRating,
-      ratingCount: deal.review_count,
+const h = deal.history;
+const changeLog = (deal.changeLog || []).filter(c => c.fields?.length);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: deal.name,
+  url: canonical,
+  description: deal.description,
+  image: deal.image_url,
+  startDate: deal.start_date || undefined,
+  endDate: deal.end_date || undefined,
+  location: deal.locations?.[0] ? {
+    '@type': 'Place',
+    name: deal.provider || deal.locations[0].name,
+    address: deal.address || deal.locations[0].address,
+    geo: deal.locations[0].lat != null && deal.locations[0].lng != null ? {
+      '@type': 'GeoCoordinates',
+      latitude: deal.locations[0].lat,
+      longitude: deal.locations[0].lng,
     } : undefined,
-    offers: currentPrice != null ? {
-      '@type': 'Offer',
-      price: currentPrice.toFixed(2),
-      priceCurrency: 'EUR',
-      url: tripperUrl(deal.url),
-      availability: deal.isActive
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/Discontinued',
-    } : undefined,
-  },
-];
-
-// Price change log: only show entries where something changed (or the very first)
-const significantLog = deal.priceLog.filter((p) => p.changed);
-
-// Format date nicely
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { year: 'numeric', month: 'long', day: 'numeric' });
-}
+  } : undefined,
+};
 ---
 <Base
   title={pageTitle}
-  description={metaDesc}
+  description={metaDesc || deal.description}
   canonical={canonical}
-  ogType="product"
-  ogImage={ogImage}
+  ogType="article"
+  ogImage={deal.image_url}
   ogImageAlt={deal.name}
   noindex={!deal.isActive}
   jsonLd={jsonLd}
   needsLeaflet={deal.locations.length > 0}
 >
-
-<div class="deal-hero">
-  <div class="container">
-    <nav class="breadcrumb" aria-label="Broodkruimelpad">
-      <a href={import.meta.env.BASE_URL}>Tripper Deals</a>
-      <span aria-hidden="true">›</span>
-      <span>{deal.name}</span>
-    </nav>
-    <h1>{deal.name}</h1>
-    <div class="deal-hero-meta">
-      {deal.provider && <span>📍 {deal.provider}</span>}
-      {deal.location && <span>🗺️ {deal.location}</span>}
-      {deal.locations.length > 1 && <span>📌 {deal.locations.length} locaties</span>}
-      {deal.isActive
-        ? <span class="status-active">✅ Actief</span>
-        : <span class="status-inactive">⚫ Niet meer actief</span>
-      }
+  <div class="deal-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Broodkruimelpad">
+        <a href={import.meta.env.BASE_URL}>VriendenLoterij Deals</a>
+        <span aria-hidden="true">›</span>
+        <span>{deal.name}</span>
+      </nav>
+      <h1>{deal.name}</h1>
+      <div class="deal-hero-meta">
+        {deal.label && <span>{deal.label}</span>}
+        {deal.location && <span>🗺️ {deal.location}</span>}
+        {deal.provider && <span>📍 {deal.provider}</span>}
+        {deal.locations.length > 1 && <span>📌 {deal.locations.length} locaties</span>}
+        {deal.isActive ? <span class="status-active">Actief</span> : <span class="status-inactive">Niet meer actief</span>}
+      </div>
     </div>
   </div>
-</div>
 
-<main id="main" class="container">
-  <a href={import.meta.env.BASE_URL} class="back-link" style="margin-top:1.25rem;display:inline-flex;">← Terug naar overzicht</a>
+  <main id="main" class="container">
+    <a href={import.meta.env.BASE_URL} class="back-link" style="margin-top:1.25rem;display:inline-flex;">← Terug naar overzicht</a>
 
-  <div class="deal-grid">
-    <!-- Left: price + CTA -->
-    <div>
-      <div class="card" style="margin-bottom:1rem">
-        <h2>Prijsoverzicht</h2>
-        <div style="margin-bottom:0.5rem">
-          {currentPrice != null && (
-            <span class="price-hero">€{currentPrice.toFixed(2)}</span>
-          )}
-          {originalPrice != null && currentPrice != null && (
-            <span class="price-was">€{originalPrice.toFixed(2)}</span>
-          )}
-        </div>
-        {deal.discount_num && (
-          <span class="discount-badge" style="margin-bottom:0.75rem;display:inline-flex">-{deal.discount_num}%</span>
-        )}
-        {deal.savings != null && deal.savings > 0 && (
-          <p style="font-size:0.9rem;color:var(--green-700);font-weight:600;margin-top:0.25rem">
-            Besparing: €{deal.savings.toFixed(2)}
-          </p>
-        )}
-        {h?.at_lowest && h.days_tracked > 1 && (
-          <p style="margin-top:0.5rem"><span class="lowest-badge">⭐ LAAGSTE PRIJS OOIT</span></p>
-        )}
-        {deal.isActive && (
-          <a
-            href={tripperUrl(deal.url)}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="cta-btn"
-          >
-            Bekijk op Tripper ↗
-          </a>
-        )}
-      </div>
-
-      <div class="card">
-        <h2>Details</h2>
-        <dl class="kv-list">
-          {deal.provider && (
-            <><dt>Aanbieder</dt><dd>{deal.provider}</dd></>
-          )}
-          {deal.location && (
-            <><dt>Locatie</dt><dd>{deal.location}</dd></>
-          )}
-          {deal.rating && (
-            <><dt>Beoordeling</dt><dd>{deal.rating}</dd></>
-          )}
-          {h && (
-            <><dt>Eerste gezien</dt><dd>{fmtDate(h.first_seen)}</dd></>
-          )}
-          {h && (
-            <><dt>Laatste gezien</dt><dd>{fmtDate(h.last_seen)}</dd></>
-          )}
-          {h && (
-            <><dt>Gevolgd</dt><dd>{h.days_tracked} dagen</dd></>
-          )}
-          {h && h.min_price != null && (
-            <><dt>Laagste prijs</dt><dd>€{h.min_price.toFixed(2)}</dd></>
-          )}
-          {h && h.max_price != null && (
-            <><dt>Hoogste prijs</dt><dd>€{h.max_price.toFixed(2)}</dd></>
-          )}
-          {h && (
-            <><dt>Trend</dt><dd>{h.trend === 'down' ? '📉 Gedaald' : h.trend === 'up' ? '📈 Gestegen' : '➡️ Stabiel'}</dd></>
-          )}
-        </dl>
-      </div>
-    </div>
-
-    <!-- Right: chart -->
-    <div>
-      {deal.chartSvg ? (
+    <div class="deal-grid">
+      <div>
         <div class="card" style="margin-bottom:1rem">
-          <h2>Prijsgeschiedenis</h2>
-          <div class="chart-wrap" set:html={deal.chartSvg} />
+          <h2>Aanbieding</h2>
+          {deal.image_url && <img src={deal.image_url} alt="" loading="lazy" style="width:100%;border-radius:12px;margin-bottom:1rem;" />}
+          {deal.label && <p><span class="discount-badge">{deal.label}</span></p>}
+          {deal.description && <p>{deal.description}</p>}
+          {deal.isActive && (
+            <a href={deal.url} target="_blank" rel="noopener noreferrer" class="cta-btn">
+              Bekijk bij VriendenLoterij ↗
+            </a>
+          )}
         </div>
-      ) : (
-        <div class="card" style="margin-bottom:1rem">
-          <h2>Prijsgeschiedenis</h2>
-          <p style="color:var(--gray-500);font-size:0.9rem">Onvoldoende data voor grafiek.</p>
-        </div>
-      )}
 
-      {significantLog.length > 0 && (
         <div class="card">
-          <h2>Prijswijzigingen</h2>
-          <div style="overflow-x:auto">
-            <table class="price-log-table">
-              <thead>
-                <tr>
-                  <th>Datum</th>
-                  <th>Aanbieding</th>
-                  <th>Origineel</th>
-                  <th>Korting</th>
-                  <th>Verschil</th>
-                </tr>
-              </thead>
-              <tbody>
-                {significantLog.map((entry) => (
-                  <tr>
-                    <td>{entry.date}</td>
-                    <td style="font-weight:600;color:var(--green-700)">{entry.price != null ? `€${entry.price.toFixed(2)}` : '-'}</td>
-                    <td style="text-decoration:line-through;color:var(--gray-400)">
-                      {entry.original != null ? `€${entry.original.toFixed(2)}` : '-'}
-                    </td>
-                    <td>{entry.discount_num ? `-${entry.discount_num}%` : '-'}</td>
-                    <td>
-                      {entry.delta == null ? '—' : entry.delta > 0
-                        ? <span class="delta-up">+€{entry.delta.toFixed(2)}</span>
-                        : entry.delta < 0
-                          ? <span class="delta-down">-€{Math.abs(entry.delta).toFixed(2)}</span>
-                          : '—'
-                      }
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h2>Details</h2>
+          <dl class="kv-list">
+            {deal.provider && <><dt>Locatie</dt><dd>{deal.provider}</dd></>}
+            {deal.location && <><dt>Plaats</dt><dd>{deal.location}</dd></>}
+            {deal.start_date && <><dt>Start</dt><dd>{formatDateTime(deal.start_date)}</dd></>}
+            {deal.end_date && <><dt>Einde</dt><dd>{formatDateTime(deal.end_date)}</dd></>}
+            {deal.categories?.length ? <><dt>Categorieen</dt><dd>{deal.categories.join(', ')}</dd></> : null}
+            {deal.types?.length ? <><dt>Tags</dt><dd>{deal.types.join(', ')}</dd></> : null}
+            {h && <><dt>Eerste gezien</dt><dd>{h.first_seen}</dd></>}
+            {h && <><dt>Laatste gezien</dt><dd>{h.last_seen}</dd></>}
+            {h && <><dt>Wijzigingen</dt><dd>{h.change_count}</dd></>}
+          </dl>
         </div>
-      )}
+      </div>
+
+      <div>
+        {changeLog.length > 0 && (
+          <div class="card" style="margin-bottom:1rem">
+            <h2>Wijzigingshistorie</h2>
+            <div style="overflow-x:auto">
+              <table class="price-log-table">
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>Velden</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {changeLog.map(change => (
+                    <tr>
+                      <td>{change.date}</td>
+                      <td>{change.fields.join(', ')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {deal.locations.length > 0 && (
+          <div class="card">
+            <h2>Kaart</h2>
+            <div id="detail-map" style="height:360px;border-radius:12px;overflow:hidden"></div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
 
-  <!-- Locations section -->
-  {deal.locations.length > 0 && (
-    <div class="card" style="margin-bottom:1.5rem">
-      <h2>
-        Locaties {deal.locations.length > 1 && <span style="font-weight:400;color:var(--gray-500);font-size:0.85rem">({deal.locations.length} vestigingen)</span>}
-      </h2>
-
-      {deal.locations.some(l => l.lat != null) && (
-        <div id="deal-map"></div>
-      )}
-
-      {deal.locations.length > 1 && (
-        <ul class="loc-list" aria-label="Alle locaties">
+    {deal.locations.length > 1 && (
+      <section class="card" style="margin-top:1rem">
+        <h2>Alle locaties</h2>
+        <ul>
           {deal.locations.map(loc => (
-            <li>{loc.address || `${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}`}</li>
+            <li>{[loc.name, loc.address, loc.city].filter(Boolean).join(' - ')}</li>
           ))}
         </ul>
-      )}
-    </div>
-  )}
-</main>
+      </section>
+    )}
+  </main>
 
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <h3>Tripper Deals</h3>
-        <p>Vakantie- en reisaanbiedingen overzichtelijk bij elkaar.</p>
-      </div>
-      <div>
-        <h4>Navigatie</h4>
-        <ul>
-          <li><a href={import.meta.env.BASE_URL}>← Terug naar overzicht</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p class="footer-disclaimer">⚠️ Prijzen en beschikbaarheid kunnen afwijken. Controleer altijd bij de aanbieder.</p>
-      <p class="footer-disclaimer">🔗 Links naar tripper.nl bevatten een persoonlijke referral-code (<code>?ref={TRIPPER_REF}</code>).</p>
-      <p class="footer-copyright">© 2026 Tripper Deals.</p>
-    </div>
-  </div>
-</footer>
-
-{deal.locations.some(l => l.lat != null) && (
-  <>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" is:inline></script>
+  {deal.locations.length > 0 && (
     <script define:vars={{ locations: deal.locations }}>
-      const mapEl = document.getElementById('deal-map');
-      if (mapEl && locations.length > 0) {
-        const validLocs = locations.filter(l => l.lat != null && l.lng != null);
-        if (validLocs.length > 0) {
-          const m = L.map('deal-map');
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-          }).addTo(m);
-          const markerList = validLocs.map(loc => {
-            const marker = L.marker([loc.lat, loc.lng]).addTo(m);
-            if (loc.address) marker.bindPopup(loc.address);
-            return marker;
-          });
-          if (markerList.length === 1) {
-            m.setView([validLocs[0].lat, validLocs[0].lng], 13);
-          } else {
-            m.fitBounds(L.latLngBounds(markerList.map(mk => mk.getLatLng())), { padding: [30, 30] });
-          }
-        }
-      }
+      window.addEventListener('DOMContentLoaded', () => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+        script.crossOrigin = 'anonymous';
+        script.onload = () => {
+          const points = locations.filter((l) => l.lat != null && l.lng != null);
+          if (!points.length) return;
+          const map = window.L.map('detail-map').setView([points[0].lat, points[0].lng], 10);
+          window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+          const markers = points.map((loc) => window.L.marker([loc.lat, loc.lng]).addTo(map).bindPopup([loc.name, loc.address, loc.city].filter(Boolean).join('<br>')));
+          if (markers.length > 1) map.fitBounds(window.L.latLngBounds(markers.map(m => m.getLatLng())), { padding: [30, 30] });
+        };
+        document.head.appendChild(script);
+      });
     </script>
-  </>
-)}
-
+  )}
 </Base>

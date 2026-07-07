@@ -2,70 +2,37 @@
 import Base from '../layouts/Base.astro';
 import { SITE_URL } from '../lib/config';
 import { getAllDealDetails } from '../lib/deals';
-import { isAtLowestStable } from '../lib/categorize';
+import { isWinactie } from '../lib/categorize';
 
 const canonical = `${SITE_URL}/laagste-prijs/`;
-
 const deals = getAllDealDetails()
-  .filter(isAtLowestStable)
-  .sort((a, b) => (b.discount_num ?? 0) - (a.discount_num ?? 0))
-  .slice(0, 50);
-
+  .filter(isWinactie)
+  .sort((a, b) => (a.end_ts ?? 0) - (b.end_ts ?? 0))
+  .slice(0, 100);
 const base = import.meta.env.BASE_URL;
 ---
 <Base
-  title="Deals op laagste prijs ooit — Tripper Deals"
-  description="Tripper.nl vakantieaanbiedingen die nu op de laagste prijs staan sinds we ze volgen. Beste moment om te boeken."
+  title="Winacties - VriendenLoterij Deals"
+  description="Actieve VriendenLoterij VIP-KAART winacties, gesorteerd op einddatum."
   canonical={canonical}
   ogType="website"
 >
   <main id="main" class="container" style="max-width:960px;padding:2rem 1rem 4rem;">
     <p><a href={base}>← Terug naar overzicht</a></p>
-
-    <h1>⭐ Deals op hun laagste prijs ooit</h1>
-    <p class="lead">
-      Vakantieaanbiedingen waarvan de huidige prijs gelijk is aan het minimum dat wij hebben
-      gemeten sinds we deze deal volgen (minimaal 14 dagen). Vaak een goed moment om te boeken.
-    </p>
-
+    <h1>Winacties</h1>
+    <p class="lead">Actieve winacties en kans-op acties. Deze categorie wordt extra vaak gecontroleerd voor new-wiki notificaties.</p>
     {deals.length === 0 ? (
-      <p><em>Op dit moment geen deals die hieraan voldoen.</em></p>
+      <p><em>Geen actieve winacties gevonden.</em></p>
     ) : (
       <ul class="deal-card-list" style="list-style:none;padding:0;">
         {deals.map(d => (
           <li style="margin-bottom:1.25rem;padding:1rem;border:1px solid #e5e7eb;border-radius:8px;">
-            <a href={`${base}deal/${d.slug}/`} style="font-weight:600;font-size:1.05rem;">
-              {d.name}
-            </a>
-            {d.location && <p style="margin:0.25rem 0;color:#6b7280;font-size:0.9rem;">{d.location}</p>}
-            <p style="margin:0.5rem 0 0;font-size:0.95rem;">
-              {d.discounted_price != null && (
-                <strong>€{d.discounted_price.toFixed(2)}</strong>
-              )}
-              {d.original_price != null && d.original_price !== d.discounted_price && (
-                <span style="color:#6b7280;text-decoration:line-through;margin-left:0.5rem;">
-                  €{d.original_price.toFixed(2)}
-                </span>
-              )}
-              {d.discount && (
-                <span style="margin-left:0.5rem;color:#dc2626;font-weight:600;">{d.discount} korting</span>
-              )}
-              {d.history?.days_tracked != null && (
-                <span style="margin-left:0.5rem;color:#6b7280;font-size:0.85rem;">
-                  {d.history.days_tracked} dagen gevolgd
-                </span>
-              )}
-            </p>
+            <a href={`${base}deal/${d.slug}/`} style="font-weight:600;font-size:1.05rem;">{d.name}</a>
+            <p style="margin:0.25rem 0;color:#6b7280;font-size:0.9rem;">{[d.location, d.provider].filter(Boolean).join(' · ')}</p>
+            <p style="margin:0.5rem 0 0;font-size:0.95rem;">{d.label || 'Winactie'} {d.end_date && <span>· t/m {d.end_date}</span>}</p>
           </li>
         ))}
       </ul>
     )}
-
-    <hr style="margin:2rem 0;" />
-    <p>
-      Zie ook: <a href={`${base}prijsdalingen/`}>recente prijsdalingen</a>,
-      <a href={`${base}hotels/`}> hotels &amp; verblijven</a>,
-      <a href={`${base}dagjes-uit/`}> dagjes uit</a>.
-    </p>
   </main>
 </Base>
