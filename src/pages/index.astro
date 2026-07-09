@@ -1,311 +1,178 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE_URL, TRIPPER_REF } from '../lib/config';
-import { getAllDealDetails, getAllHistory, getLatestDeals, getLatestDate, getSlug } from '../lib/deals';
+import { SITE_URL, SOURCE_SITE_URL } from '../lib/config';
+import { getAllDealDetails } from '../lib/deals';
 
 const site = SITE_URL;
 const canonical = site + '/';
-const description = 'Overzicht van alle actuele Tripper.nl vakantie- en reisdeals. Vergelijk prijzen, volg trends en bespaar op je volgende trip.';
+const description = 'Alle VriendenLoterij VIP-KAART aanbiedingen, winacties, gratis uitjes en kortingen op een kaart met wijzigingshistorie.';
 const baseUrl = import.meta.env.BASE_URL;
 
-// Used only for static HTML link graph (crawler discoverability + PageRank)
 const activeDeals = getAllDealDetails()
   .filter(d => d.isActive && d.slug)
-  .sort((a, b) => (b.discount_num ?? 0) - (a.discount_num ?? 0));
+  .sort((a, b) => Number(b.is_winactie) - Number(a.is_winactie) || (a.end_ts ?? 0) - (b.end_ts ?? 0));
 
-// Build-time computation of recent price drops so the section is visible
-// on first paint (instead of display:none until JS populates it). Mirrors
-// the runtime logic in src/scripts/deals-app.ts:getRecentDrop().
-function buildStaticRecentDrops() {
-  let selectedDate: string;
-  try {
-    selectedDate = getLatestDate();
-  } catch {
-    return { drops: [], cutoffDate: '' };
-  }
-  const activeUrls = new Set(getLatestDeals().map(d => d.url));
-  const history = getAllHistory();
-  const cutoff = new Date(selectedDate + 'T00:00:00Z');
-  cutoff.setUTCDate(cutoff.getUTCDate() - 3);
-  const cutoffDate = cutoff.toISOString().slice(0, 10);
+const newWinacties = activeDeals
+  .filter(d => d.is_winactie)
+  .slice(0, 6);
 
-  const items: Array<{ url: string; name: string; meta: string; slug: string; amount: number; percent: number; fromPrice: number; toPrice: number; firstDropDate: string; lastDropDate: string }> = [];
-  for (const [url, h] of Object.entries(history)) {
-    if (!activeUrls.has(url)) continue;
-    const pts = (h.prices || [])
-      .filter(p => p.price != null && p.date <= selectedDate)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    if (pts.length < 2) continue;
-
-    let totalDrop = 0;
-    let firstDropDate: string | null = null;
-    let lastDropDate: string | null = null;
-    let fromPrice: number | null = null;
-    let toPrice: number | null = null;
-
-    for (let i = 1; i < pts.length; i++) {
-      const prev = pts[i - 1];
-      const curr = pts[i];
-      if (curr.date < cutoffDate || curr.date > selectedDate) continue;
-      if (curr.price >= prev.price) continue;
-      const delta = +(prev.price - curr.price).toFixed(2);
-      totalDrop = +(totalDrop + delta).toFixed(2);
-      firstDropDate ??= curr.date;
-      lastDropDate = curr.date;
-      fromPrice ??= prev.price;
-      toPrice = curr.price;
-    }
-    if (totalDrop <= 0 || fromPrice == null || toPrice == null) continue;
-
-    items.push({
-      url,
-      name: h.name || url,
-      meta: h.location || h.provider || '',
-      slug: getSlug(url),
-      amount: totalDrop,
-      percent: fromPrice ? (totalDrop / fromPrice) * 100 : 0,
-      fromPrice,
-      toPrice,
-      firstDropDate: firstDropDate!,
-      lastDropDate: lastDropDate!,
-    });
-  }
-  items.sort((a, b) => b.amount - a.amount);
-  return { drops: items.slice(0, 8), cutoffDate };
-}
-
-const recentDrops = buildStaticRecentDrops();
-
-const homepageJsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Tripper Deals',
-    url: site + '/',
-    description,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${site}/?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Tripper Deals',
-    url: site + '/',
-    logo: `${site}/og-default.png`,
-  },
-];
+const homepageJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'VriendenLoterij Deals',
+  url: site + '/',
+  description,
+};
 ---
 <Base
-  title="Tripper Deals – Vakantieaanbiedingen overzicht"
+  title="VriendenLoterij Deals - VIP-KAART aanbiedingen"
   description={description}
   canonical={canonical}
-  ogImageAlt="Tripper Deals – Vakantieaanbiedingen overzicht"
+  ogImageAlt="VriendenLoterij Deals - VIP-KAART aanbiedingen"
   jsonLd={homepageJsonLd}
+  needsLeaflet
 >
+  <header class="hero">
+    <div class="container hero-inner">
+      <div class="hero-top">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">★</div>
+          <div>
+            <h1>VriendenLoterij Deals</h1>
+            <p>VIP-KAART aanbiedingen, winacties en gratis uitjes</p>
+          </div>
+        </div>
+        <a href={SOURCE_SITE_URL} target="_blank" rel="noopener noreferrer" class="sister-link">
+          Bron bekijken <span aria-hidden="true">↗</span>
+        </a>
+      </div>
 
-<header class="hero">
-  <div class="container hero-inner">
-    <div class="hero-top">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">✈</div>
+      <p class="hero-tagline">
+        Volg <span class="accent">winacties, gratis toegang en kortingen</span> met kaartweergave en wijzigingshistorie.
+      </p>
+
+      <div class="filter-bar" role="search">
+        <select id="date-picker" title="Selecteer datum" aria-label="Selecteer datum"></select>
+        <select id="location-filter" title="Filter op plaats" aria-label="Filter op plaats"><option value="">Alle plaatsen</option></select>
+        <input type="text" id="search-box" placeholder="Zoek op naam, plaats, categorie..." aria-label="Zoek aanbiedingen" />
+        <select id="offer-filter" title="Filter op aanbodtype" aria-label="Filter op aanbodtype">
+          <option value="">Alle aanbodtypes</option>
+          <option value="winactie">Winacties</option>
+          <option value="gratis">Gratis</option>
+          <option value="korting">Korting</option>
+          <option value="exclusief">Exclusief</option>
+          <option value="twee-gratis">2 personen gratis</option>
+          <option value="overig">Overig</option>
+        </select>
+        <select id="category-filter" title="Filter op categorie" aria-label="Filter op categorie"><option value="">Alle categorieen</option></select>
+        <select id="activity-filter" title="Filter op activiteitstype" aria-label="Filter op activiteitstype"><option value="">Alle activiteitstypes</option></select>
+        <select id="province-filter" title="Filter op provincie" aria-label="Filter op provincie"><option value="">Alle provincies</option></select>
+        <select id="geo-filter" title="Filter op kaartdata" aria-label="Filter op kaartdata">
+          <option value="">Alle kaartdata</option>
+          <option value="mapped">Met kaartlocatie</option>
+          <option value="multi">Meerdere locaties</option>
+          <option value="unmapped">Zonder kaartlocatie</option>
+        </select>
+        <select id="date-filter" title="Filter op einddatum" aria-label="Filter op einddatum">
+          <option value="">Alle einddatums</option>
+          <option value="ending-7">Loopt af binnen 7 dagen</option>
+          <option value="ending-30">Loopt af binnen 30 dagen</option>
+          <option value="later">Later</option>
+          <option value="no-end">Geen einddatum</option>
+        </select>
+        <select id="change-filter" title="Filter op wijzigingsstatus" aria-label="Filter op wijzigingsstatus">
+          <option value="">Alle wijzigingen</option>
+          <option value="new">Nieuw</option>
+          <option value="changed">Gewijzigd</option>
+          <option value="stable">Stabiel</option>
+        </select>
+        <select id="status-filter" title="Filter op status" aria-label="Filter op status">
+          <option value="active">Actief</option>
+          <option value="all">Alles</option>
+          <option value="expired">Niet meer actief</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="container stats-section">
+    <div class="stats-bar" id="stats-bar"></div>
+  </main>
+
+  {newWinacties.length > 0 && (
+    <section class="container recent-drops-section" aria-labelledby="winacties-title">
+      <div class="section-heading">
         <div>
-          <h1>Tripper Deals</h1>
-          <p>Vakantie aanbiedingen in één overzicht</p>
+          <h2 id="winacties-title">Nieuwste winacties</h2>
+          <p>De winactie-watcher controleert deze categorie extra vaak.</p>
         </div>
       </div>
-      <a href="https://ahlert.nl/" target="_blank" rel="noopener noreferrer" class="sister-link" title="Bekijk Albert Heijn Laatste Kans deals op AHlert">
-        AHlert <span aria-hidden="true">↗</span>
-      </a>
+      <div class="recent-drops-grid">
+        {newWinacties.map(d => (
+          <article class="drop-card">
+            <div class="drop-card-main">
+              <a href={`${baseUrl}deal/${d.slug}/`} class="drop-card-title">{d.name}</a>
+              <span class="drop-card-meta">{[d.location, d.provider].filter(Boolean).join(' · ')}</span>
+            </div>
+            <div class="drop-card-price">
+              <span class="drop-amount">{d.label || 'Winactie'}</span>
+            </div>
+            <div class="drop-card-footer">
+              <span>{d.end_date ? `t/m ${d.end_date}` : 'Geen einddatum bekend'}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="container">
+    <div class="view-toggle" role="tablist" aria-label="Weergave kiezen">
+      <button id="btn-table" class="active" data-view="table" role="tab" aria-selected="true">Tabel</button>
+      <button id="btn-map" data-view="map" role="tab" aria-selected="false">Kaart</button>
+      <button id="btn-split" data-view="split" role="tab" aria-selected="false">Kaart + Lijst</button>
+      <a class="view-toggle-link" href={`${baseUrl}wijzigingen/`}>Wijzigingen</a>
     </div>
 
-    <p class="hero-tagline">
-      Vind de beste <span class="accent">reis- en vakantiedeals</span>, vergelijk prijzen en mis nooit meer een aanbieding.
-    </p>
-
-    <a href={`https://www.tripper.nl/?ref=${TRIPPER_REF}`} target="_blank" rel="sponsored nofollow noopener noreferrer" class="referral-banner">
-      🎁 <strong>Nieuw bij Tripper?</strong> Registreer via onze link en ontvang <strong>€2,50 korting</strong> na je eerste aankoop — binnen 14 dagen op je account. <span class="referral-cta">Aanmelden ↗</span>
-    </a>
-
-    <div class="filter-bar" role="search">
-      <select id="date-picker" title="Selecteer datum" aria-label="Selecteer datum"></select>
-      <select id="location-filter" title="Filter op locatie" aria-label="Filter op locatie"><option value="">Alle locaties</option></select>
-      <input type="text" id="search-box" placeholder="Zoek op naam, locatie, aanbieder..." aria-label="Zoek deals" />
-      <select id="expired-filter" title="Filter op status" aria-label="Filter op dealstatus">
-        <option value="active">Actieve deals</option>
-        <option value="all">Alle deals</option>
-        <option value="expired">Alleen verlopen</option>
-      </select>
-    </div>
-  </div>
-</header>
-
-<main id="main" class="container stats-section">
-  <div class="stats-bar" id="stats-bar"></div>
-</main>
-
-<section class="container recent-drops-section" id="recent-drops-section" aria-labelledby="recent-drops-title" style={recentDrops.drops.length ? '' : 'display: none;'}>
-  <div class="section-heading">
-    <div>
-      <h2 id="recent-drops-title">Gedaald in de laatste 3 dagen</h2>
-      <p id="recent-drops-summary">{recentDrops.drops.length ? `${recentDrops.drops.length} deal${recentDrops.drops.length !== 1 ? 's' : ''} met een prijsdaling sinds ${recentDrops.cutoffDate}` : ''}</p>
-    </div>
-  </div>
-  <div class="recent-drops-grid" id="recent-drops-grid">
-    {recentDrops.drops.map(d => (
-      <article class="drop-card">
-        <div class="drop-card-main">
-          <a href={d.slug ? `${baseUrl}deal/${d.slug}/` : '#'} class="drop-card-title">{d.name}</a>
-          <span class="drop-card-meta">{d.meta}</span>
-        </div>
-        <div class="drop-card-price">
-          <span class="drop-amount">-€{d.amount.toFixed(2)}</span>
-          <span class="drop-percent">{d.percent.toFixed(1)}%</span>
-        </div>
-        <div class="drop-card-footer">
-          <span><s>€{d.fromPrice.toFixed(2)}</s> → <strong>€{d.toPrice.toFixed(2)}</strong></span>
-          <span>{d.firstDropDate === d.lastDropDate ? d.lastDropDate : `${d.firstDropDate} t/m ${d.lastDropDate}`}</span>
-        </div>
-      </article>
-    ))}
-  </div>
-</section>
-
-<section class="container">
-  <div class="view-toggle" role="tablist" aria-label="Weergave kiezen">
-    <button id="btn-table" class="active" data-view="table" role="tab" aria-selected="true">Tabel</button>
-    <button id="btn-map" data-view="map" role="tab" aria-selected="false">Kaart</button>
-    <button id="btn-split" data-view="split" role="tab" aria-selected="false">Kaart + Lijst</button>
-  </div>
-
-  <div class="split-wrap">
-    <div id="map-container"></div>
-
-    <div id="table-container">
-      <div class="table-wrap">
-        <div class="map-filter-note" id="map-filter-note"></div>
-        <div class="loading" id="loading">Deals laden...</div>
-        <div class="table-scroll">
-          <table id="deals-table">
-            <thead>
-              <tr>
-                <th data-col="name">Deal <span class="arrow"></span></th>
-                <th data-col="location">Locatie <span class="arrow"></span></th>
-                <th data-col="provider" class="col-extra">Aanbieder <span class="arrow"></span></th>
-                <th data-col="discount_num">Korting <span class="arrow"></span></th>
-                <th data-col="discounted_price">Van / Voor <span class="arrow"></span></th>
-                <th data-col="savings" class="col-extra">Besparing <span class="arrow"></span></th>
-                <th data-col="rating" class="col-extra">Rating <span class="arrow"></span></th>
-                <th data-col="_trend" class="col-extra">Trend <span class="arrow"></span></th>
-              </tr>
-            </thead>
-            <tbody id="deals-body">
-              {activeDeals.map(d => (
-                <tr class="expandable" data-url={d.url}>
-                  <td><a href={`${import.meta.env.BASE_URL}deal/${d.slug}/`}>{d.name}</a></td>
-                  <td>{d.location}</td>
-                  <td class="col-extra">{d.provider || ''}</td>
-                  <td>{d.discount_num ? <span class="discount-badge">-{d.discount_num}%</span> : ''}</td>
-                  <td>
-                    {d.original_price != null && <span class="price-original">€{d.original_price.toFixed(2)}</span>}
-                    {d.discounted_price != null && <span class="price-deal">€{d.discounted_price.toFixed(2)}</span>}
-                  </td>
-                  <td class="col-extra">{d.savings != null ? `€${d.savings.toFixed(2)}` : ''}</td>
-                  <td class="col-extra">{d.rating || ''}</td>
-                  <td class="col-extra"></td>
+    <div class="split-wrap">
+      <div id="map-container"></div>
+      <div id="table-container">
+        <div class="table-wrap">
+          <div class="loading" id="loading">Aanbiedingen laden...</div>
+          <div class="table-scroll">
+            <table id="deals-table">
+              <thead>
+                <tr>
+                  <th data-col="name">Aanbieding <span class="arrow"></span></th>
+                  <th data-col="kind">Type <span class="arrow"></span></th>
+                  <th data-col="location">Plaats <span class="arrow"></span></th>
+                  <th data-col="provider" class="col-extra">Locatie <span class="arrow"></span></th>
+                  <th data-col="end_ts">Geldig tot <span class="arrow"></span></th>
+                  <th class="col-extra">Categorie</th>
+                  <th class="col-extra">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody id="deals-body">
+                {activeDeals.map(d => (
+                  <tr>
+                    <td><a href={`${baseUrl}deal/${d.slug}/`}>{d.name}</a></td>
+                    <td><span class="discount-badge">{d.label || (d.is_winactie ? 'Winactie' : 'Aanbod')}</span></td>
+                    <td>{d.location}</td>
+                    <td class="col-extra">{d.provider}</td>
+                    <td>{d.end_date || ''}</td>
+                    <td class="col-extra">{(d.categories || []).slice(0, 2).join(', ')}</td>
+                    <td class="col-extra">{d.history?.trend === 'new' ? 'Nieuw' : d.history?.trend === 'changed' ? 'Gewijzigd' : 'Stabiel'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="container network-section" aria-labelledby="network-title">
-  <div class="section-heading">
-    <div>
-      <h2 id="network-title">Meer manieren om te besparen</h2>
-      <p>Naast Tripper Deals onderhouden we twee zustersites — elk met een ander besparingsdomein.</p>
-    </div>
-  </div>
-  <div class="network-grid">
-    <a href="https://ahlert.nl/" target="_blank" rel="noopener noreferrer" class="network-card">
-      <div class="network-card-head">
-        <span class="network-card-emoji" aria-hidden="true">🛒</span>
-        <h3>AHlert <span class="network-card-arrow" aria-hidden="true">↗</span></h3>
-      </div>
-      <p class="network-card-tag">Albert Heijn Laatste Kans</p>
-      <p>Realtime overzicht van Albert Heijn-producten met 35–70&nbsp;% korting voordat ze worden weggegooid. Filter per filiaal en zie wat er nu in de bonus ligt.</p>
-    </a>
-    <a href="https://free4me.nl/" target="_blank" rel="noopener noreferrer" class="network-card">
-      <div class="network-card-head">
-        <span class="network-card-emoji" aria-hidden="true">🎁</span>
-        <h3>Free4me.nl <span class="network-card-arrow" aria-hidden="true">↗</span></h3>
-      </div>
-      <p class="network-card-tag">Gratis kortingen, cashback en referrals</p>
-      <p>Verzameling van werkende referral-codes, cashback-acties en welkomstbonussen — handgecontroleerd zodat je geen tijd verspilt aan verlopen aanbiedingen.</p>
-    </a>
-  </div>
-</section>
-
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <p class="footer-brand">Tripper Deals</p>
-        <p>Vakantie- en reisaanbiedingen overzichtelijk bij elkaar. Vergelijk prijzen, volg trends en bespaar op je volgende trip.</p>
-      </div>
-      <nav aria-label="Meer besparen in ons netwerk">
-        <h4>Meer besparen</h4>
-        <ul>
-          <li><a href="https://ahlert.nl/" target="_blank" rel="noopener noreferrer">AHlert ↗ <br /><small>Albert Heijn Laatste Kans koopjes</small></a></li>
-          <li><a href="https://free4me.nl/" target="_blank" rel="noopener noreferrer">Free4me.nl ↗ <br /><small>Gratis kortingen, cashback en referrals</small></a></li>
-        </ul>
-      </nav>
-      <nav aria-label="Categorieën">
-        <h4>Categorieën</h4>
-        <ul>
-          <li><a href={`${import.meta.env.BASE_URL}prijsdalingen/`}>📉 Prijsdalingen</a></li>
-          <li><a href={`${import.meta.env.BASE_URL}laagste-prijs/`}>⭐ Op laagste prijs</a></li>
-          <li><a href={`${import.meta.env.BASE_URL}hotels/`}>🏨 Hotels &amp; verblijven</a></li>
-          <li><a href={`${import.meta.env.BASE_URL}dagjes-uit/`}>🎢 Dagjes uit</a></li>
-        </ul>
-      </nav>
-      <div>
-        <h4>Bron</h4>
-        <ul>
-          <li><a href={`${import.meta.env.BASE_URL}over/`}>Over Tripper Deals</a></li>
-          <li><a href={`${import.meta.env.BASE_URL}privacy/`}>Privacy &amp; affiliate-disclosure</a></li>
-          <li><a href="https://github.com/graafg/tripper-deals" target="_blank" rel="noopener noreferrer">GitHub repository ↗</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Deals</h4>
-        <ul class="footer-deal-links" aria-label="Alle actieve deals">
-          {activeDeals.map(d => (
-            <li><a href={`${import.meta.env.BASE_URL}deal/${d.slug}/`}>{d.name}</a></li>
-          ))}
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p class="footer-disclaimer">⚠️ Tripper Deals is een onafhankelijk overzicht. Prijzen en beschikbaarheid kunnen afwijken. Controleer altijd bij de aanbieder.</p>
-      <p class="footer-disclaimer">🔗 Links naar tripper.nl bevatten onze persoonlijke referral-code (<code>?ref={TRIPPER_REF}</code>). Bij een aankoop via deze links kunnen wij Tripper-spaarpunten ontvangen, zonder extra kosten voor jou.</p>
-      <p class="footer-copyright">© {new Date().getFullYear()} Tripper Deals. Alle rechten voorbehouden.</p>
-    </div>
-  </div>
-</footer>
-
-<script>
-  import { init } from '../scripts/deals-app';
-  init();
-</script>
-
+  <script>
+    import '../scripts/deals-app.ts';
+  </script>
 </Base>

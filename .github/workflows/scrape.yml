@@ -1,17 +1,13 @@
-name: Scrape Tripper Deals
+name: Scrape VriendenLoterij Deals
 
 on:
   schedule:
-    # Every day at 08:00 UTC (09:00 CET winter / 10:00 CEST summer)
-    - cron: '0 8 * * *'
+    # Full site/data refresh once daily.
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       deploy_only:
-        description: 'Skip scraping – redeploy current data/UI only'
-        type: boolean
-        default: false
-      backfill_meta:
-        description: 'Re-fetch all cached deal pages to populate image_url and review_count'
+        description: 'Skip scraping - redeploy current data/UI only'
         type: boolean
         default: false
 
@@ -44,24 +40,20 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run scraper
-        run: python tripper_scraper.py
+        run: python vriendenloterij_scraper.py
 
-      - name: Backfill image + review meta (if requested)
-        if: ${{ github.event.inputs.backfill_meta == 'true' }}
-        run: python tripper_scraper.py --backfill-meta
-
-      - name: Build price history
+      - name: Build offer history
         run: python build_history.py
 
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ geocache.json dealcache.json
+          git add data/
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update deals $(date -u +%Y-%m-%d)"
+            git commit -m "Update VriendenLoterij offers $(date -u +%Y-%m-%d)"
             git pull --rebase origin main
             git push
           fi

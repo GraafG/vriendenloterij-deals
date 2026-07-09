@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE_URL } from '../lib/config';
+import { getAllHistory, getSlug } from '../lib/deals';
+
+const canonical = `${SITE_URL}/wijzigingen/`;
+const base = import.meta.env.BASE_URL;
+
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Naam',
+  description: 'Omschrijving',
+  label: 'Label',
+  offers: 'Aanbodtype',
+  offer_enums: 'Aanbodcode',
+  categories: 'Categorieen',
+  types: 'Activiteitstypes',
+  location: 'Plaats',
+  provider: 'Locatie',
+  start_date: 'Startdatum',
+  end_date: 'Einddatum',
+  last_updated: 'Bron gewijzigd',
+  locations: 'Kaartlocaties',
+  image_url: 'Afbeelding',
+  mobile_image_url: 'Mobiele afbeelding',
+  highlight_event: 'Uitgelicht',
+  show_on_app: 'In app',
+  show_on_website: 'Op website',
+};
+
+function stringifyValue(value: unknown): string {
+  if (value == null || value === '') return '-';
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '-';
+    if (typeof value[0] === 'object') {
+      return `${value.length} locatie${value.length === 1 ? '' : 's'}`;
+    }
+    return value.join(', ');
+  }
+  if (typeof value === 'boolean') return value ? 'Ja' : 'Nee';
+  return String(value);
+}
+
+const events = Object.entries(getAllHistory()).flatMap(([url, h]) => {
+  const slug = getSlug(url);
+  return (h.changes || []).map((change, index) => {
+    const snapshotIndex = h.snapshots?.findIndex(s => s.date === change.date && s.signature === change.signature) ?? -1;
+    const current = snapshotIndex >= 0 ? h.snapshots?.[snapshotIndex]?.snapshot || {} : {};
+    const previous = snapshotIndex > 0 ? h.snapshots?.[snapshotIndex - 1]?.snapshot || null : null;
+    const isNew = index === 0;
+    return {
+      url,
+      slug,
+      name: h.name,
+      date: change.date,
+      isNew,
+      fields: change.fields || [],
+      rows: (change.fields || []).map(field => ({
+        field,
+        label: FIELD_LABELS[field] || field,
+        before: previous ? stringifyValue(previous[field]) : '',
+        after: stringifyValue(current[field]),
+      })),
+    };
+  });
+}).sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name, 'nl'));
+
+const visibleEvents = events.slice(0, 300);
+---
+<Base
+  title="Wijzigingen - VriendenLoterij Deals"
+  description="Overzicht van nieuwe en gewijzigde VriendenLoterij VIP-KAART aanbiedingen met datum en gewijzigde velden."
+  canonical={canonical}
+  ogType="website"
+>
+  <main id="main" class="container" style="max-width:1100px;padding:2rem 1rem 4rem;">
+    <p><a href={base}>← Terug naar overzicht</a></p>
+    <h1>Wijzigingen</h1>
+    <p class="lead">
+      Nieuwe aanbiedingen en wijzigingen in labels, categorieen, datums, locaties, kaartdata en zichtbaarheid.
+      De nieuwste wijzigingen staan bovenaan.
+    </p>
+
+    {visibleEvents.length === 0 ? (
+      <p><em>Nog geen wijzigingen gevonden.</em></p>
+    ) : (
+      <div class="change-event-list">
+        {visibleEvents.map(event => (
+          <article class="change-event-card">
+            <div class="change-event-head">
+              <div>
+                <h2><a href={`${base}deal/${event.slug}/`}>{event.name}</a></h2>
+                <p>{event.date} · {event.isNew ? 'Nieuw aanbod' : `${event.fields.length} veld${event.fields.length === 1 ? '' : 'en'} gewijzigd`}</p>
+              </div>
+              <span class={event.isNew ? 'status-active' : 'discount-badge'}>{event.isNew ? 'Nieuw' : 'Gewijzigd'}</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="price-log-table">
+                <thead>
+                  <tr>
+                    <th>Veld</th>
+                    <th>Voor</th>
+                    <th>Na</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {event.rows.slice(0, event.isNew ? 8 : 20).map(row => (
+                    <tr>
+                      <td>{row.label}</td>
+                      <td>{event.isNew ? '-' : row.before}</td>
+                      <td>{row.after}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </main>
+</Base>
