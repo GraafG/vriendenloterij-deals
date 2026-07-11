@@ -1,178 +1,852 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE_URL, SOURCE_SITE_URL } from '../lib/config';
+import { SITE_CONFIG, SITE_URL, TRIPPER_REF } from '../lib/config';
 import { getAllDealDetails } from '../lib/deals';
 
 const site = SITE_URL;
 const canonical = site + '/';
-const description = 'Alle VriendenLoterij VIP-KAART aanbiedingen, winacties, gratis uitjes en kortingen op een kaart met wijzigingshistorie.';
-const baseUrl = import.meta.env.BASE_URL;
+const description = SITE_CONFIG.copy.description;
 
+// Used only for static HTML link graph (crawler discoverability + PageRank)
 const activeDeals = getAllDealDetails()
   .filter(d => d.isActive && d.slug)
-  .sort((a, b) => Number(b.is_winactie) - Number(a.is_winactie) || (a.end_ts ?? 0) - (b.end_ts ?? 0));
+  .sort((a, b) => (b.discount_num ?? 0) - (a.discount_num ?? 0));
 
-const newWinacties = activeDeals
-  .filter(d => d.is_winactie)
-  .slice(0, 6);
-
-const homepageJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'VriendenLoterij Deals',
-  url: site + '/',
-  description,
-};
+const homepageJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_CONFIG.name,
+    url: site + '/',
+    description,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${site}/?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_CONFIG.name,
+    url: site + '/',
+    logo: `${site}/og-default.png`,
+  },
+];
 ---
 <Base
-  title="VriendenLoterij Deals - VIP-KAART aanbiedingen"
+  title={SITE_CONFIG.copy.homeTitle}
   description={description}
   canonical={canonical}
-  ogImageAlt="VriendenLoterij Deals - VIP-KAART aanbiedingen"
+  ogImageAlt={SITE_CONFIG.copy.homeTitle}
   jsonLd={homepageJsonLd}
-  needsLeaflet
 >
-  <header class="hero">
-    <div class="container hero-inner">
-      <div class="hero-top">
-        <div class="brand">
-          <div class="brand-mark" aria-hidden="true">★</div>
-          <div>
-            <h1>VriendenLoterij Deals</h1>
-            <p>VIP-KAART aanbiedingen, winacties en gratis uitjes</p>
-          </div>
-        </div>
-        <a href={SOURCE_SITE_URL} target="_blank" rel="noopener noreferrer" class="sister-link">
-          Bron bekijken <span aria-hidden="true">↗</span>
-        </a>
-      </div>
 
-      <p class="hero-tagline">
-        Volg <span class="accent">winacties, gratis toegang en kortingen</span> met kaartweergave en wijzigingshistorie.
-      </p>
-
-      <div class="filter-bar" role="search">
-        <select id="date-picker" title="Selecteer datum" aria-label="Selecteer datum"></select>
-        <select id="location-filter" title="Filter op plaats" aria-label="Filter op plaats"><option value="">Alle plaatsen</option></select>
-        <input type="text" id="search-box" placeholder="Zoek op naam, plaats, categorie..." aria-label="Zoek aanbiedingen" />
-        <select id="offer-filter" title="Filter op aanbodtype" aria-label="Filter op aanbodtype">
-          <option value="">Alle aanbodtypes</option>
-          <option value="winactie">Winacties</option>
-          <option value="gratis">Gratis</option>
-          <option value="korting">Korting</option>
-          <option value="exclusief">Exclusief</option>
-          <option value="twee-gratis">2 personen gratis</option>
-          <option value="overig">Overig</option>
-        </select>
-        <select id="category-filter" title="Filter op categorie" aria-label="Filter op categorie"><option value="">Alle categorieen</option></select>
-        <select id="activity-filter" title="Filter op activiteitstype" aria-label="Filter op activiteitstype"><option value="">Alle activiteitstypes</option></select>
-        <select id="province-filter" title="Filter op provincie" aria-label="Filter op provincie"><option value="">Alle provincies</option></select>
-        <select id="geo-filter" title="Filter op kaartdata" aria-label="Filter op kaartdata">
-          <option value="">Alle kaartdata</option>
-          <option value="mapped">Met kaartlocatie</option>
-          <option value="multi">Meerdere locaties</option>
-          <option value="unmapped">Zonder kaartlocatie</option>
-        </select>
-        <select id="date-filter" title="Filter op einddatum" aria-label="Filter op einddatum">
-          <option value="">Alle einddatums</option>
-          <option value="ending-7">Loopt af binnen 7 dagen</option>
-          <option value="ending-30">Loopt af binnen 30 dagen</option>
-          <option value="later">Later</option>
-          <option value="no-end">Geen einddatum</option>
-        </select>
-        <select id="change-filter" title="Filter op wijzigingsstatus" aria-label="Filter op wijzigingsstatus">
-          <option value="">Alle wijzigingen</option>
-          <option value="new">Nieuw</option>
-          <option value="changed">Gewijzigd</option>
-          <option value="stable">Stabiel</option>
-        </select>
-        <select id="status-filter" title="Filter op status" aria-label="Filter op status">
-          <option value="active">Actief</option>
-          <option value="all">Alles</option>
-          <option value="expired">Niet meer actief</option>
-        </select>
-      </div>
-    </div>
-  </header>
-
-  <main id="main" class="container stats-section">
-    <div class="stats-bar" id="stats-bar"></div>
-  </main>
-
-  {newWinacties.length > 0 && (
-    <section class="container recent-drops-section" aria-labelledby="winacties-title">
-      <div class="section-heading">
+<header class="hero">
+  <div class="container hero-inner">
+    <div class="hero-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">{SITE_CONFIG.theme.mark}</div>
         <div>
-          <h2 id="winacties-title">Nieuwste winacties</h2>
-          <p>De winactie-watcher controleert deze categorie extra vaak.</p>
+          <h1>{SITE_CONFIG.name}</h1>
+          <p>{SITE_CONFIG.copy.tagline}</p>
         </div>
       </div>
-      <div class="recent-drops-grid">
-        {newWinacties.map(d => (
-          <article class="drop-card">
-            <div class="drop-card-main">
-              <a href={`${baseUrl}deal/${d.slug}/`} class="drop-card-title">{d.name}</a>
-              <span class="drop-card-meta">{[d.location, d.provider].filter(Boolean).join(' · ')}</span>
-            </div>
-            <div class="drop-card-price">
-              <span class="drop-amount">{d.label || 'Winactie'}</span>
-            </div>
-            <div class="drop-card-footer">
-              <span>{d.end_date ? `t/m ${d.end_date}` : 'Geen einddatum bekend'}</span>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  )}
-
-  <section class="container">
-    <div class="view-toggle" role="tablist" aria-label="Weergave kiezen">
-      <button id="btn-table" class="active" data-view="table" role="tab" aria-selected="true">Tabel</button>
-      <button id="btn-map" data-view="map" role="tab" aria-selected="false">Kaart</button>
-      <button id="btn-split" data-view="split" role="tab" aria-selected="false">Kaart + Lijst</button>
-      <a class="view-toggle-link" href={`${baseUrl}wijzigingen/`}>Wijzigingen</a>
+      <a href={SITE_CONFIG.sourceUrl} target="_blank" rel="noopener noreferrer" class="sister-link">
+        Bron bekijken <span aria-hidden="true">↗</span>
+      </a>
     </div>
 
-    <div class="split-wrap">
-      <div id="map-container"></div>
-      <div id="table-container">
-        <div class="table-wrap">
-          <div class="loading" id="loading">Aanbiedingen laden...</div>
-          <div class="table-scroll">
-            <table id="deals-table">
-              <thead>
-                <tr>
-                  <th data-col="name">Aanbieding <span class="arrow"></span></th>
-                  <th data-col="kind">Type <span class="arrow"></span></th>
-                  <th data-col="location">Plaats <span class="arrow"></span></th>
-                  <th data-col="provider" class="col-extra">Locatie <span class="arrow"></span></th>
-                  <th data-col="end_ts">Geldig tot <span class="arrow"></span></th>
-                  <th class="col-extra">Categorie</th>
-                  <th class="col-extra">Status</th>
+    <p class="hero-tagline">{SITE_CONFIG.copy.hero}</p>
+
+    {SITE_CONFIG.features.referral && SITE_CONFIG.referral && (
+    <a href={`${SITE_CONFIG.sourceUrl}/?${SITE_CONFIG.referral.param}=${TRIPPER_REF}`} target="_blank" rel="sponsored nofollow noopener noreferrer" class="referral-banner">
+      🎁 {SITE_CONFIG.referral.banner} <span class="referral-cta">Aanmelden ↗</span>
+    </a>
+    )}
+
+    <div class="filter-bar" role="search">
+      <select id="date-picker" title="Selecteer datum" aria-label="Selecteer datum"></select>
+      <select id="location-filter" title="Filter op locatie" aria-label="Filter op locatie"><option value="">Alle locaties</option></select>
+      <input type="text" id="search-box" placeholder="Zoek op naam, locatie, aanbieder..." aria-label="Zoek deals" />
+      <select id="expired-filter" title="Filter op status" aria-label="Filter op dealstatus">
+        <option value="active">Actieve deals</option>
+        <option value="all">Alle deals</option>
+        <option value="expired">Alleen verlopen</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="container stats-section">
+  <div class="stats-bar" id="stats-bar"></div>
+</main>
+
+<section class="container recent-drops-section" id="recent-drops-section" aria-labelledby="recent-drops-title" style="display: none;">
+  <div class="section-heading">
+    <div>
+      <h2 id="recent-drops-title">Gedaald in de laatste 3 dagen</h2>
+      <p id="recent-drops-summary"></p>
+    </div>
+  </div>
+  <div class="recent-drops-grid" id="recent-drops-grid"></div>
+</section>
+
+<section class="container">
+  <div class="view-toggle" role="tablist">
+    <button id="btn-table" class="active" onclick="showView('table')" role="tab" aria-selected="true">Tabel</button>
+    <button id="btn-map" onclick="showView('map')" role="tab" aria-selected="false">Kaart</button>
+    <button id="btn-split" onclick="showView('split')" role="tab" aria-selected="false">Kaart + Lijst</button>
+  </div>
+
+  <div class="split-wrap">
+    <div id="map-container"></div>
+
+    <div id="table-container">
+      <div class="table-wrap">
+        <div class="map-filter-note" id="map-filter-note"></div>
+        <div class="loading" id="loading">Deals laden...</div>
+        <div class="table-scroll">
+          <table id="deals-table">
+            <thead>
+              <tr>
+                <th data-col="name">Deal <span class="arrow"></span></th>
+                <th data-col="location">Locatie <span class="arrow"></span></th>
+                <th data-col="provider" class="col-extra">Aanbieder <span class="arrow"></span></th>
+                <th data-col="discount_num">Korting <span class="arrow"></span></th>
+                <th data-col="discounted_price">Van / Voor <span class="arrow"></span></th>
+                <th data-col="savings" class="col-extra">Besparing <span class="arrow"></span></th>
+                <th data-col="rating" class="col-extra">Rating <span class="arrow"></span></th>
+                <th data-col="_trend" class="col-extra">Trend <span class="arrow"></span></th>
+              </tr>
+            </thead>
+            <tbody id="deals-body">
+              {activeDeals.map(d => (
+                <tr class="expandable" data-url={d.url}>
+                  <td><a href={`${import.meta.env.BASE_URL}deal/${d.slug}/`}>{d.name}</a></td>
+                  <td>{d.location}</td>
+                  <td class="col-extra">{d.provider || ''}</td>
+                  <td>{d.discount_num ? <span class="discount-badge">-{d.discount_num}%</span> : ''}</td>
+                  <td>
+                    {d.original_price != null && <span class="price-original">€{d.original_price.toFixed(2)}</span>}
+                    {d.discounted_price != null && <span class="price-deal">€{d.discounted_price.toFixed(2)}</span>}
+                  </td>
+                  <td class="col-extra">{d.savings != null ? `€${d.savings.toFixed(2)}` : ''}</td>
+                  <td class="col-extra">{d.rating || ''}</td>
+                  <td class="col-extra"></td>
                 </tr>
-              </thead>
-              <tbody id="deals-body">
-                {activeDeals.map(d => (
-                  <tr>
-                    <td><a href={`${baseUrl}deal/${d.slug}/`}>{d.name}</a></td>
-                    <td><span class="discount-badge">{d.label || (d.is_winactie ? 'Winactie' : 'Aanbod')}</span></td>
-                    <td>{d.location}</td>
-                    <td class="col-extra">{d.provider}</td>
-                    <td>{d.end_date || ''}</td>
-                    <td class="col-extra">{(d.categories || []).slice(0, 2).join(', ')}</td>
-                    <td class="col-extra">{d.history?.trend === 'new' ? 'Nieuw' : d.history?.trend === 'changed' ? 'Gewijzigd' : 'Stabiel'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <script>
-    import '../scripts/deals-app.ts';
-  </script>
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p class="footer-brand">{SITE_CONFIG.name}</p>
+        <p>{SITE_CONFIG.copy.description}</p>
+      </div>
+      <nav aria-label="Meer besparen in ons netwerk">
+        <h4>Meer besparen</h4>
+        <ul>
+          <li><a href="https://ahlert.nl/" target="_blank" rel="noopener noreferrer">AHlert ↗ <br /><small>Albert Heijn Laatste Kans koopjes</small></a></li>
+          <li><a href="https://free4me.nl/" target="_blank" rel="noopener noreferrer">Free4me.nl ↗ <br /><small>Gratis kortingen, cashback en referrals</small></a></li>
+        </ul>
+      </nav>
+      <div>
+        <h4>Bron</h4>
+        <ul>
+          <li><a href={`${import.meta.env.BASE_URL}privacy/`}>Privacy &amp; affiliate-disclosure</a></li>
+          <li><a href="https://github.com/graafg/tripper-deals" target="_blank" rel="noopener noreferrer">GitHub repository ↗</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Deals</h4>
+        <ul class="footer-deal-links" aria-label="Alle actieve deals">
+          {activeDeals.map(d => (
+            <li><a href={`${import.meta.env.BASE_URL}deal/${d.slug}/`}>{d.name}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-disclaimer">⚠️ {SITE_CONFIG.name} is een onafhankelijk overzicht. Prijzen en beschikbaarheid kunnen afwijken. Controleer altijd bij de aanbieder.</p>
+      {SITE_CONFIG.features.referral && SITE_CONFIG.referral && (
+        <p class="footer-disclaimer">🔗 Links bevatten onze persoonlijke referral-code (<code>?{SITE_CONFIG.referral.param}={TRIPPER_REF}</code>), zonder extra kosten voor jou.</p>
+      )}
+      <p class="footer-copyright">© {new Date().getFullYear()} {SITE_CONFIG.name}. Alle rechten voorbehouden.</p>
+    </div>
+  </div>
+</footer>
+
+<script is:inline define:vars={{ TRIPPER_REF, SITE_NAME: SITE_CONFIG.name }}>
+// Read base URL injected by Astro in the <meta name="site-base"> tag.
+const DATA_BASE = (document.querySelector('meta[name="site-base"]')?.content || '/').replace(/\/$/, '');
+
+let allDeals = [];
+let historyData = {};
+let _expiredDeals = [];
+let expiredFilter = 'active'; // 'active' | 'all' | 'expired'
+let sortCol = 'discount_num';
+let sortAsc = false;
+let map = null;
+let markers = [];
+let expandedUrl = null;
+let currentView = 'table';
+let _colCount = null;
+let _isApplyingUrlState = false;
+
+window.addEventListener('resize', () => { _colCount = null; });
+
+const DEFAULT_DOCUMENT_TITLE = document.title;
+const VALID_EXPIRED_FILTERS = new Set(['active', 'all', 'expired']);
+const VALID_VIEWS = new Set(['table', 'map', 'split']);
+
+function updateDocumentTitle() {
+  const searchBox = document.getElementById('search-box');
+  const locationFilter = document.getElementById('location-filter');
+  const parts = [];
+
+  const q = searchBox.value.trim();
+  if (q) parts.push(`Zoek: ${q}`);
+  if (locationFilter.value) parts.push(locationFilter.value);
+  if (expiredFilter === 'expired') parts.push('verlopen deals');
+  else if (expiredFilter === 'all') parts.push('alle deals');
+
+  document.title = parts.length ? `${parts.join(' - ')} | ${SITE_NAME}` : DEFAULT_DOCUMENT_TITLE;
+}
+
+function readUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    q: params.get('q') || params.get('search') || '',
+    date: params.get('date') || '',
+    location: params.get('location') || params.get('loc') || '',
+    status: params.get('status') || params.get('expired') || '',
+    view: params.get('view') || '',
+    sort: params.get('sort') || '',
+    dir: params.get('dir') || '',
+  };
+}
+
+function updateUrlState({ replace = true } = {}) {
+  if (_isApplyingUrlState) return;
+
+  const picker = document.getElementById('date-picker');
+  const searchBox = document.getElementById('search-box');
+  const locationFilter = document.getElementById('location-filter');
+  const params = new URLSearchParams();
+
+  const q = searchBox.value.trim();
+  if (q) params.set('q', q);
+  if (picker.value && picker.selectedIndex > 0) params.set('date', picker.value);
+  if (locationFilter.value) params.set('location', locationFilter.value);
+  if (expiredFilter !== 'active') params.set('status', expiredFilter);
+  if (currentView !== 'table') params.set('view', currentView);
+  if (sortCol !== 'discount_num') params.set('sort', sortCol);
+  if (sortAsc) params.set('dir', 'asc');
+
+  updateDocumentTitle();
+
+  const query = params.toString();
+  const nextUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
+  if (nextUrl === window.location.pathname + window.location.search + window.location.hash) return;
+
+  window.history[replace ? 'replaceState' : 'pushState'](null, '', nextUrl);
+}
+
+function applyUrlStateToControls(state) {
+  _isApplyingUrlState = true;
+
+  document.getElementById('search-box').value = state.q || '';
+
+  expiredFilter = VALID_EXPIRED_FILTERS.has(state.status) ? state.status : 'active';
+  document.getElementById('expired-filter').value = expiredFilter;
+
+  if (state.location) {
+    const locationFilter = document.getElementById('location-filter');
+    locationFilter.value = [...locationFilter.options].some(opt => opt.value === state.location) ? state.location : '';
+  } else {
+    document.getElementById('location-filter').value = '';
+  }
+
+  if (state.sort) sortCol = state.sort;
+  sortAsc = state.dir === 'asc';
+
+  _isApplyingUrlState = false;
+}
+
+function applyUrlStateAfterDataLoad(state) {
+  applyUrlStateToControls(state);
+  const nextView = VALID_VIEWS.has(state.view) ? state.view : 'table';
+  if (nextView === currentView) {
+    renderTable();
+    renderStats();
+    if (map) renderMap(false);
+  } else {
+    showView(nextView);
+  }
+  updateUrlState();
+}
+
+function dataPathForDate(dateStr) {
+  const [year, month, day] = dateStr.split('-');
+  return `${DATA_BASE}/data/${year}/${month}/${day}.json`;
+}
+
+function getSlug(url) {
+  try {
+    const parts = new URL(url).pathname.replace(/\/$/, '').split('/');
+    return parts[parts.length - 1] || '';
+  } catch { return ''; }
+}
+
+async function init() {
+  try {
+    const initialUrlState = readUrlState();
+    const [indexRes, histRes] = await Promise.all([
+      fetch(DATA_BASE + '/data/index.json'),
+      fetch(DATA_BASE + '/data/history.json').catch(() => null),
+    ]);
+    const dates = await indexRes.json();
+    if (histRes && histRes.ok) historyData = await histRes.json();
+
+    const picker = document.getElementById('date-picker');
+    dates.forEach((d, i) => {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      if (initialUrlState.date ? d === initialUrlState.date : i === 0) opt.selected = true;
+      picker.appendChild(opt);
+    });
+    picker.addEventListener('change', () => loadDate(picker.value, readUrlState(), { updateUrl: true }));
+    if (dates.length) loadDate(picker.value || dates[0], initialUrlState);
+    else document.getElementById('loading').textContent = 'Geen data beschikbaar.';
+  } catch (e) {
+    document.getElementById('loading').textContent = 'Fout bij laden van data.';
+    console.error(e);
+  }
+}
+
+async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false } = {}) {
+  document.getElementById('loading').style.display = 'block';
+  try {
+    const res = await fetch(dataPathForDate(dateStr));
+    allDeals = await res.json();
+
+    allDeals.forEach(d => {
+      const h = historyData[d.url];
+      if (h) {
+        d._trend = h.trend || 'new';
+        d._atLowest = h.at_lowest || false;
+        d._minPrice = h.min_price;
+        d._maxPrice = h.max_price;
+        d._daysTracked = h.days_tracked || 1;
+        d._history = h.prices || [];
+      } else {
+        d._trend = 'new';
+        d._atLowest = false;
+        d._minPrice = null;
+        d._maxPrice = null;
+        d._daysTracked = 1;
+        d._history = [];
+      }
+      d.trend = d._trend === 'down' ? 0 : d._trend === 'stable' ? 1 : d._trend === 'up' ? 2 : 3;
+    });
+
+    // Build expired deals (in history but not in current snapshot)
+    const activeUrls = new Set(allDeals.map(d => d.url));
+    _expiredDeals = [];
+    for (const [url, h] of Object.entries(historyData)) {
+      if (activeUrls.has(url)) continue;
+      const lastEntry = h.prices[h.prices.length - 1] || {};
+      const price = h.current_price ?? null;
+      const original = lastEntry.original ?? null;
+      _expiredDeals.push({
+        url,
+        name: h.name || url,
+        location: h.location || '',
+        provider: h.provider || '',
+        discounted_price: price,
+        original_price: original,
+        discount_num: lastEntry.discount_num || 0,
+        savings: (original != null && price != null) ? +(original - price).toFixed(2) : null,
+        rating: null,
+        locations: h.locations || null,
+        lat: h.lat || null, lng: h.lng || null,
+        _expired: true,
+        _trend: h.trend || 'stable',
+        _atLowest: h.at_lowest || false,
+        _minPrice: h.min_price,
+        _maxPrice: h.max_price,
+        _daysTracked: h.days_tracked || 1,
+        _history: h.prices || [],
+        _last_seen: h.last_seen || '',
+        trend: h.trend === 'down' ? 0 : h.trend === 'stable' ? 1 : h.trend === 'up' ? 2 : 3,
+      });
+    }
+    _expiredDeals.sort((a, b) => b._last_seen.localeCompare(a._last_seen));
+
+    expandedUrl = null;
+    populateLocationFilter();
+    applyUrlStateAfterDataLoad(urlState);
+    if (updateUrl) updateUrlState({ replace: false });
+  } catch (e) {
+    document.getElementById('loading').textContent = 'Fout bij laden van deals.';
+    console.error(e);
+  }
+}
+
+function populateLocationFilter() {
+  const sel = document.getElementById('location-filter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Alle locaties</option>';
+  const locs = [...new Set(allDeals.map(d => d.location).filter(Boolean))].sort();
+  locs.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l; opt.textContent = l;
+    sel.appendChild(opt);
+  });
+  sel.value = current || '';
+}
+
+function getFiltered(forMap = false) {
+  const q = document.getElementById('search-box').value.toLowerCase();
+  const loc = document.getElementById('location-filter').value;
+  const filter = expiredFilter;
+
+  let pool;
+  if (filter === 'expired') pool = _expiredDeals;
+  else if (filter === 'all') pool = [...allDeals, ..._expiredDeals];
+  else pool = allDeals;
+
+  let deals = pool.filter(d => {
+    if (loc && d.location !== loc) return false;
+    if (q && !(d.name + ' ' + d.location + ' ' + d.provider).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (currentView === 'split' && map) {
+    const bounds = map.getBounds();
+    deals = deals.filter(d => {
+      const locs = Array.isArray(d.locations) && d.locations.length
+        ? d.locations
+        : (d.lat && d.lng ? [{ lat: d.lat, lng: d.lng }] : []);
+      return locs.some(l => l && l.lat != null && bounds.contains([l.lat, l.lng]));
+    });
+  }
+
+  return deals;
+}
+
+function getSelectedDate() {
+  return document.getElementById('date-picker').value;
+}
+
+function dateDaysAgo(dateStr, days) {
+  const date = new Date(dateStr + 'T00:00:00Z');
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getRecentDrop(deal) {
+  const selectedDate = getSelectedDate();
+  if (!selectedDate) return null;
+
+  const cutoffDate = dateDaysAgo(selectedDate, 3);
+  const pts = (deal._history || [])
+    .filter(p => p.price != null && p.date <= selectedDate)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (pts.length < 2) return null;
+
+  let totalDrop = 0;
+  let firstDropDate = null;
+  let lastDropDate = null;
+  let fromPrice = null;
+  let toPrice = null;
+
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1];
+    const curr = pts[i];
+    if (curr.date < cutoffDate || curr.date > selectedDate) continue;
+    if (curr.price >= prev.price) continue;
+
+    const delta = +(prev.price - curr.price).toFixed(2);
+    totalDrop = +(totalDrop + delta).toFixed(2);
+    firstDropDate ??= curr.date;
+    lastDropDate = curr.date;
+    fromPrice ??= prev.price;
+    toPrice = curr.price;
+  }
+
+  if (totalDrop <= 0 || fromPrice == null || toPrice == null) return null;
+
+  return {
+    amount: totalDrop,
+    percent: fromPrice ? (totalDrop / fromPrice) * 100 : 0,
+    fromPrice,
+    toPrice,
+    firstDropDate,
+    lastDropDate,
+  };
+}
+
+function getRecentDropDeals(limit = 8) {
+  return getFiltered()
+    .filter(d => !d._expired)
+    .map(d => ({ deal: d, drop: getRecentDrop(d) }))
+    .filter(item => item.drop)
+    .sort((a, b) => b.drop.amount - a.drop.amount)
+    .slice(0, limit);
+}
+
+function renderRecentDrops() {
+  const section = document.getElementById('recent-drops-section');
+  const summary = document.getElementById('recent-drops-summary');
+  const grid = document.getElementById('recent-drops-grid');
+  const drops = getRecentDropDeals();
+
+  if (!drops.length) {
+    section.style.display = 'none';
+    grid.innerHTML = '';
+    summary.textContent = '';
+    return;
+  }
+
+  section.style.display = '';
+  const selectedDate = getSelectedDate();
+  const cutoffDate = dateDaysAgo(selectedDate, 3);
+  summary.textContent = `${drops.length} deal${drops.length !== 1 ? 's' : ''} met een prijsdaling sinds ${cutoffDate}`;
+
+  grid.innerHTML = drops.map(({ deal, drop }) => {
+    const slug = getSlug(deal.url);
+    const href = slug ? esc(DATA_BASE + '/deal/' + slug + '/') : safeUrl(deal.url);
+    const dateText = drop.firstDropDate === drop.lastDropDate
+      ? drop.lastDropDate
+      : `${drop.firstDropDate} t/m ${drop.lastDropDate}`;
+    return `<article class="drop-card">
+      <div class="drop-card-main">
+        <a href="${href}" class="drop-card-title">${esc(deal.name)}</a>
+        <span class="drop-card-meta">${esc(deal.location || deal.provider || '')}</span>
+      </div>
+      <div class="drop-card-price">
+        <span class="drop-amount">-&euro;${drop.amount.toFixed(2)}</span>
+        <span class="drop-percent">${drop.percent.toFixed(1)}%</span>
+      </div>
+      <div class="drop-card-footer">
+        <span><s>&euro;${drop.fromPrice.toFixed(2)}</s> &rarr; <strong>&euro;${drop.toPrice.toFixed(2)}</strong></span>
+        <span>${dateText}</span>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function renderStats() {
+  const deals = getFiltered().filter(d => !d._expired);
+  const prices = deals.map(d => d.discounted_price).filter(p => p != null);
+  const savings = deals.map(d => d.savings).filter(s => s != null);
+  const discounts = deals.map(d => d.discount_num).filter(d => d > 0);
+  const atLowest = deals.filter(d => d._atLowest && d.discounted_price != null).length;
+  const priceDrops = deals.filter(d => d._trend === 'down').length;
+  const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : '-';
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="stat-label">Deals</span><span class="stat-value accent">${deals.length}</span></div>
+    <div class="stat"><span class="stat-label">Gem. prijs</span><span class="stat-value">&euro;${avg(prices)}</span></div>
+    <div class="stat"><span class="stat-label">Gem. korting</span><span class="stat-value">${avg(discounts)}%</span></div>
+    <div class="stat"><span class="stat-label">Gem. besparing</span><span class="stat-value">&euro;${avg(savings)}</span></div>
+    <div class="stat"><span class="stat-label">Laagste prijs</span><span class="stat-value">&euro;${prices.length ? prices.reduce((a, b) => Math.min(a, b), Infinity).toFixed(2) : '-'}</span></div>
+    <div class="stat"><span class="stat-label">📉 Prijsdalingen</span><span class="stat-value">${priceDrops}</span></div>
+    <div class="stat"><span class="stat-label">⭐ Op laagste prijs</span><span class="stat-value">${atLowest}</span></div>
+  `;
+  renderRecentDrops();
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function safeUrl(url) {
+  if (!url) return '#';
+  try {
+    const u = new URL(url);
+    if (!['http:', 'https:'].includes(u.protocol)) return '#';
+    if (/(^|\.)tripper\.nl$/i.test(u.hostname)) u.searchParams.set('ref', TRIPPER_REF);
+    return esc(u.toString());
+  } catch { return '#'; }
+}
+
+function lowestBadge(deal) {
+  if (deal._atLowest && deal._daysTracked > 1 && deal.discounted_price != null)
+    return ' <span class="lowest-badge" title="Laagste prijs ooit">LAAGSTE</span>';
+  return '';
+}
+
+function renderTable() {
+  const deals = getFiltered();
+  deals.sort((a, b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (va == null) va = sortAsc ? Infinity : -Infinity;
+    if (vb == null) vb = sortAsc ? Infinity : -Infinity;
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+    return sortAsc ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0);
+  });
+
+  if (_colCount === null)
+    _colCount = [...document.querySelectorAll('#deals-table thead th')].filter(th => getComputedStyle(th).display !== 'none').length;
+  const colCount = _colCount;
+  const slug = (d) => getSlug(d.url);
+  document.getElementById('deals-body').innerHTML = deals.map(d => {
+    const isExpired = !!d._expired;
+    const priceCell = d.original_price != null
+      ? `<span class="price-original">&euro;${d.original_price.toFixed(2)}</span><span class="price-deal">&euro;${d.discounted_price != null ? d.discounted_price.toFixed(2) : '?'}</span>`
+      : (d.discounted_price != null ? `<span class="price-deal">&euro;${d.discounted_price.toFixed(2)}</span>` : '');
+
+    const trendLabel = d._trend === 'down' ? '📉 Daling' : d._trend === 'up' ? '📈 Stijging' : d._trend === 'new' ? '🆕 Nieuw' : '→ Stabiel';
+
+    const detailHref = slug(d) ? esc(DATA_BASE + '/deal/' + slug(d) + '/') : safeUrl(d.url);
+    const expiredBadge = isExpired ? ' <span class="expired-badge">VERLOPEN</span>' : '';
+    const rowClass = isExpired ? 'expandable deal-expired' : 'expandable';
+    const mainRow = `<tr class="${rowClass}" data-url="${esc(d.url)}" onclick="toggleSparkline(this)">
+      <td><a href="${detailHref}" onclick="event.stopPropagation()">${esc(d.name)}</a>${lowestBadge(d)}${expiredBadge}</td>
+      <td>${esc(d.location)}</td>
+      <td class="col-extra">${esc(d.provider || '')}</td>
+      <td>${d.discount_num ? '<span class="discount-badge">-' + d.discount_num + '%</span>' : ''}</td>
+      <td>${priceCell}</td>
+      <td class="col-extra">${d.savings != null ? '&euro;' + d.savings.toFixed(2) : ''}</td>
+      <td class="col-extra">${esc(d.rating || '')}</td>
+      <td class="col-extra">${trendLabel}</td>
+    </tr>`;
+
+    if (expandedUrl === d.url) {
+      return mainRow + `<tr class="sparkline-row"><td colspan="${colCount}" class="sparkline-cell">${buildSparkline(d)}</td></tr>`;
+    }
+    return mainRow;
+  }).join('');
+
+  document.getElementById('loading').style.display = 'none';
+
+  const note = document.getElementById('map-filter-note');
+  if (currentView === 'split' && map) {
+    note.textContent = `🗺️ ${deals.length} deal${deals.length !== 1 ? 's' : ''} zichtbaar op kaart — zoom of pan om te filteren`;
+  } else {
+    note.textContent = '';
+  }
+
+  document.querySelectorAll('#deals-table th').forEach(th => {
+    const arrow = th.querySelector('.arrow');
+    if (th.dataset.col === sortCol) arrow.textContent = sortAsc ? '▲' : '▼';
+    else arrow.textContent = '';
+  });
+}
+
+function toggleSparkline(tr) {
+  const url = tr.dataset.url;
+  expandedUrl = expandedUrl === url ? null : url;
+  renderTable();
+}
+
+function buildSparkline(deal) {
+  const hist = deal._history || [];
+  const pts = hist.filter(p => p.price != null);
+  if (pts.length < 2) return '<div class="sparkline-meta">Onvoldoende prijsgeschiedenis voor grafiek.</div>';
+
+  const W = 480, H = 80, PAD = 24;
+  const prices = pts.map(p => p.price);
+  const minP = Math.min(...prices), maxP = Math.max(...prices), range = maxP - minP || 1;
+  const points = pts.map((p, i) => ({
+    x: PAD + (i / (pts.length - 1)) * (W - 2 * PAD),
+    y: PAD + (1 - (p.price - minP) / range) * (H - 2 * PAD),
+    ...p,
+  }));
+  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area = line + ` L${points[points.length - 1].x.toFixed(1)},${H - PAD} L${points[0].x.toFixed(1)},${H - PAD} Z`;
+  const dots = points.map(p =>
+    `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#dc2626" stroke="#fff" stroke-width="1.5"><title>${p.date}: €${p.price.toFixed(2)}</title></circle>`
+  ).join('');
+  const svg = `<svg viewBox="0 0 ${W} ${H + 16}" width="${W}" height="${H + 16}" xmlns="http://www.w3.org/2000/svg">
+    <path d="${area}" fill="rgba(220,38,38,0.1)"/>
+    <path d="${line}" fill="none" stroke="#dc2626" stroke-width="2" stroke-linejoin="round"/>
+    ${dots}
+    <text x="${PAD}" y="${H + 12}" font-size="10" fill="#888">${pts[0].date.slice(5)}</text>
+    <text x="${W - PAD}" y="${H + 12}" font-size="10" fill="#888" text-anchor="end">${pts[pts.length - 1].date.slice(5)}</text>
+    <text x="${PAD - 4}" y="${PAD + 4}" font-size="10" fill="#888" text-anchor="end">€${maxP.toFixed(0)}</text>
+    <text x="${PAD - 4}" y="${H - PAD + 4}" font-size="10" fill="#888" text-anchor="end">€${minP.toFixed(0)}</text>
+  </svg>`;
+  const detailHref = esc(DATA_BASE + '/deal/' + getSlug(deal.url) + '/');
+  const meta = `<div class="sparkline-meta">
+    <span>Gevolgd: <strong>${deal._daysTracked} dagen</strong></span>
+    <span>Laagste: <strong>&euro;${deal._minPrice != null ? deal._minPrice.toFixed(2) : '-'}</strong></span>
+    <span>Hoogste: <strong>&euro;${deal._maxPrice != null ? deal._maxPrice.toFixed(2) : '-'}</strong></span>
+    <span>Huidig: <strong>&euro;${deal.discounted_price != null ? deal.discounted_price.toFixed(2) : '-'}</strong></span>
+    <span><a href="${detailHref}">Bekijk dealpagina →</a></span>
+  </div>`;
+  return svg + meta;
+}
+
+document.querySelectorAll('#deals-table th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortCol === col) sortAsc = !sortAsc;
+    else { sortCol = col; sortAsc = true; }
+    renderTable(); renderStats(); updateUrlState();
+  });
+});
+
+function rerenderForFilterChange() {
+  expandedUrl = null;
+  renderTable();
+  renderStats();
+  if (map) renderMap(false);
+  updateUrlState();
+}
+
+document.getElementById('search-box').addEventListener('input', rerenderForFilterChange);
+document.getElementById('location-filter').addEventListener('change', rerenderForFilterChange);
+document.getElementById('expired-filter').addEventListener('change', e => { expiredFilter = e.target.value; rerenderForFilterChange(); });
+
+window.addEventListener('popstate', () => {
+  const state = readUrlState();
+  const picker = document.getElementById('date-picker');
+  const requestedDate = state.date || picker.options[0]?.value || '';
+  if (requestedDate && requestedDate !== picker.value && [...picker.options].some(opt => opt.value === requestedDate)) {
+    picker.value = requestedDate;
+    loadDate(requestedDate, state);
+  } else {
+    applyUrlStateAfterDataLoad(state);
+  }
+});
+
+let _leafletLoading = null;
+
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (_leafletLoading) return _leafletLoading;
+  _leafletLoading = new Promise((resolve, reject) => {
+    if (!document.querySelector('link[data-leaflet]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+      link.crossOrigin = 'anonymous';
+      link.setAttribute('data-leaflet', '');
+      document.head.appendChild(link);
+    }
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    s.crossOrigin = 'anonymous';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return _leafletLoading;
+}
+
+function showView(view) {
+  currentView = view;
+  ['table', 'map', 'split'].forEach(v => {
+    const btn = document.getElementById('btn-' + v);
+    btn.classList.toggle('active', view === v);
+    btn.setAttribute('aria-selected', view === v ? 'true' : 'false');
+  });
+  document.body.classList.toggle('view-split', view === 'split');
+  document.body.classList.toggle('view-map', view === 'map');
+
+  const tableContainer = document.getElementById('table-container');
+  const mapContainer = document.getElementById('map-container');
+  if (view === 'split') {
+    tableContainer.style.display = '';
+    mapContainer.style.display = '';
+  } else {
+    tableContainer.style.display = view === 'table' ? 'block' : 'none';
+    mapContainer.style.display = view === 'map' ? 'block' : 'none';
+  }
+
+  updateUrlState();
+
+  if (view === 'map' || view === 'split') {
+    const isNew = !map;
+    loadLeaflet().then(() => {
+      if (!map) {
+        map = L.map('map-container').setView([52.1, 5.3], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        map.on('moveend zoomend', () => {
+          if (currentView === 'split') { renderTable(); renderStats(); }
+        });
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        map.invalidateSize({ animate: false });
+        renderMap(isNew);
+      }));
+    });
+  } else {
+    renderTable(); renderStats();
+  }
+}
+
+function coordKey(lat, lng) {
+  return lat.toFixed(5) + ',' + lng.toFixed(5);
+}
+
+function renderMap(fitBounds = true) {
+  if (!map) return;
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const deals = getFiltered(true);
+
+  const groups = {};
+  deals.forEach(d => {
+    let locs = Array.isArray(d.locations) && d.locations.length
+      ? d.locations
+      : (d.lat && d.lng ? [{ lat: d.lat, lng: d.lng, address: d.address }] : []);
+    const totalLocs = locs.length;
+    locs.forEach(loc => {
+      if (!loc || loc.lat == null || loc.lng == null) return;
+      const key = coordKey(loc.lat, loc.lng);
+      if (!groups[key]) groups[key] = { lat: loc.lat, lng: loc.lng, address: loc.address || '', items: [] };
+      groups[key].items.push({ deal: d, locCount: totalLocs, address: loc.address || '' });
+    });
+  });
+
+  Object.values(groups).forEach(g => {
+    const count = g.items.length;
+    const header = g.address || g.items[0].deal.location || '';
+    const label = count > 1 ? `<b>${esc(header)}</b> (${count} deals)` : `<b>${esc(header)}</b>`;
+    const list = g.items.slice(0, 8).map(it => {
+      const d = it.deal;
+      const trend = d._trend === 'down' ? ' ▼' : d._trend === 'up' ? ' ▲' : '';
+      const lowest = d._atLowest && d._daysTracked > 1 ? ' ⭐' : '';
+      const multi = it.locCount > 1 ? ` <span class="multi-loc-note">(1 van ${it.locCount} locaties)</span>` : '';
+      const slug = getSlug(d.url);
+      const href = slug ? esc(DATA_BASE + '/deal/' + slug + '/') : safeUrl(d.url);
+      return `<a href="${href}">${esc(d.name)}</a> ${d.discounted_price != null ? '€' + d.discounted_price.toFixed(2) : ''}${trend}${lowest}${multi}`;
+    }).join('<br>');
+    const more = count > 8 ? `<br><i>...en ${count - 8} meer</i>` : '';
+    const marker = L.marker([g.lat, g.lng]).addTo(map).bindPopup(`${label}<br>${list}${more}`, { maxWidth: 320 });
+    markers.push(marker);
+  });
+
+  if (markers.length && fitBounds) {
+    map.fitBounds(L.latLngBounds(markers.map(m => m.getLatLng())), { padding: [30, 30] });
+  }
+}
+
+init();
+</script>
+
 </Base>

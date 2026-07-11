@@ -1,8 +1,11 @@
 import { defineConfig } from 'astro/config';
+import { loadProviderConfig } from './scripts/provider-config.mjs';
+
+const provider = loadProviderConfig();
 
 export default defineConfig({
   site: 'https://graafg.github.io',
-  base: '/vriendenloterij-deals',
+  base: provider.base,
   output: 'static',
   trailingSlash: 'always',
   build: {
