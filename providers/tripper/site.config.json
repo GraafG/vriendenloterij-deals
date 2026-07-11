@@ -1,0 +1,41 @@
+{
+  "id": "tripper",
+  "name": "Tripper Deals",
+  "shortName": "Tripper",
+  "siteUrl": "https://graafg.github.io/tripper-deals",
+  "base": "/tripper-deals",
+  "sourceUrl": "https://www.tripper.nl",
+  "dataDir": "data",
+  "dealCachePath": "dealcache.json",
+  "theme": {
+    "primary": "#dc2626",
+    "secondary": "#b91c1c",
+    "accent": "#fbbf24",
+    "mark": "✈"
+  },
+  "copy": {
+    "homeTitle": "Tripper Deals - Vakantieaanbiedingen overzicht",
+    "tagline": "Vakantie aanbiedingen in een overzicht",
+    "description": "Overzicht van alle actuele Tripper.nl vakantie- en reisdeals. Vergelijk prijzen, volg trends en bespaar op je volgende trip.",
+    "hero": "Vind de beste reis- en vakantiedeals, vergelijk prijzen en mis nooit meer een aanbieding.",
+    "rssTitle": "Tripper Deals - Vakantieaanbiedingen",
+    "rssDescription": "Laatste vakantie- en reisdeals van Tripper.nl, gesorteerd op moment van toevoegen.",
+    "ogTagline": "Vakantieaanbiedingen in een overzicht",
+    "ogBullets": [
+      "Vergelijk prijzen en trends",
+      "Prijsgeschiedenis per deal",
+      "Mis nooit een aanbieding"
+    ],
+    "ogBadge": "Gratis & dagelijks bijgewerkt"
+  },
+  "features": {
+    "prices": true,
+    "referral": true,
+    "winacties": false
+  },
+  "referral": {
+    "param": "ref",
+    "value": "F28D4VGY",
+    "banner": "Nieuw bij Tripper? Registreer via onze link en ontvang EUR 2,50 korting na je eerste aankoop - binnen 14 dagen op je account."
+  }
+}

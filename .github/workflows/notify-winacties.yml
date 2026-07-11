@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   notify:
+    if: ${{ github.repository == 'GraafG/vriendenloterij-deals' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -31,7 +32,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Detect and notify new winacties
-        run: python notify_new_winacties.py
+        run: python providers/vriendenloterij/notify_new_winacties.py
         env:
           NEW_WIKI_REPO: GraafG/new-wiki
           NEW_WIKI_GITHUB_TOKEN: ${{ secrets.NEW_WIKI_GITHUB_TOKEN }}
@@ -40,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/notified_winacties.json
+          git add providers/vriendenloterij/data/notified_winacties.json
           if git diff --cached --quiet; then
             echo "No notification state changes"
           else

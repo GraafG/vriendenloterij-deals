@@ -1,10 +1,12 @@
 {
-  "name": "vriendenloterij-deals",
+  "name": "tripper-deals",
   "type": "module",
   "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/generate-og.mjs && astro build && node scripts/copy-data.mjs",
+    "build": "node scripts/build-provider.mjs",
+    "build:tripper": "node scripts/build-provider.mjs tripper",
+    "build:vriendenloterij": "node scripts/build-provider.mjs vriendenloterij",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -12,6 +14,6 @@
     "astro": "^4.16.19"
   },
   "devDependencies": {
-    "sharp": "^0.35.2"
+    "sharp": "^0.34.5"
   }
 }

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://graafg.github.io/vriendenloterij-deals/sitemap.xml
+Sitemap: https://graafg.github.io/tripper-deals/sitemap.xml

@@ -1,0 +1,35 @@
+{
+  "id": "vriendenloterij",
+  "name": "VriendenLoterij Deals",
+  "shortName": "VriendenLoterij",
+  "siteUrl": "https://graafg.github.io/vriendenloterij-deals",
+  "base": "/vriendenloterij-deals",
+  "sourceUrl": "https://www.vriendenloterij.nl/vipkaart/aanbod",
+  "dataDir": "providers/vriendenloterij/data",
+  "theme": {
+    "primary": "#7c3aed",
+    "secondary": "#5b21b6",
+    "accent": "#facc15",
+    "mark": "★"
+  },
+  "copy": {
+    "homeTitle": "VriendenLoterij Deals - VIP-KAART aanbiedingen",
+    "tagline": "VIP-KAART aanbiedingen, winacties en gratis uitjes",
+    "description": "Alle VriendenLoterij VIP-KAART aanbiedingen, winacties, gratis uitjes en kortingen met wijzigingshistorie.",
+    "hero": "Volg winacties, gratis toegang en kortingen met kaartweergave en wijzigingshistorie.",
+    "rssTitle": "VriendenLoterij Deals",
+    "rssDescription": "Laatste VriendenLoterij VIP-KAART aanbiedingen en winacties.",
+    "ogTagline": "VIP-KAART aanbiedingen en winacties",
+    "ogBullets": [
+      "Volg winacties en gratis uitjes",
+      "Wijzigingshistorie per aanbod",
+      "Dagelijks bijgewerkt"
+    ],
+    "ogBadge": "Gratis & dagelijks bijgewerkt"
+  },
+  "features": {
+    "prices": false,
+    "referral": false,
+    "winacties": true
+  }
+}
