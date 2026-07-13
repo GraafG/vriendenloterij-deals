@@ -366,7 +366,8 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
     _expiredDeals = [];
     for (const [url, h] of Object.entries(historyData)) {
       if (activeUrls.has(url)) continue;
-      const lastEntry = h.prices[h.prices.length - 1] || {};
+      const priceHistory = Array.isArray(h.prices) ? h.prices : [];
+      const lastEntry = priceHistory[priceHistory.length - 1] || {};
       const price = h.current_price ?? null;
       const original = lastEntry.original ?? null;
       _expiredDeals.push({
@@ -387,7 +388,7 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
         _minPrice: h.min_price,
         _maxPrice: h.max_price,
         _daysTracked: h.days_tracked || 1,
-        _history: h.prices || [],
+        _history: priceHistory,
         _last_seen: h.last_seen || '',
         trend: h.trend === 'down' ? 0 : h.trend === 'stable' ? 1 : h.trend === 'up' ? 2 : 3,
       });
@@ -852,4 +853,3 @@ init();
 </script>
 
 </Base>
-
