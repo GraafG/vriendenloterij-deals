@@ -30,3 +30,4 @@ This repo is a VriendenLoterij deployment of the shared deals tracker template.
 - `src/pages/index.astro` renders inline event handlers, so any function used from `onclick` must be assigned to `window`.
 - VriendenLoterij history can contain non-price offer entries; UI code must tolerate missing `prices`, `discounted_price`, and `original_price`.
 - Some offers have multiple locations and some have none; map and filter code must handle both.
+- The scheduled winactie notifier creates issues in `GraafG/new-wiki` only when `NEW_WIKI_GITHUB_TOKEN` or `NEW_WIKI_WEBHOOK_URL` is configured. If no notification channel is available, it should warn and leave new items unmarked instead of failing the workflow.

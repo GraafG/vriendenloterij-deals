@@ -90,6 +90,27 @@ def create_new_wiki_issue(repo, token, items):
     response.raise_for_status()
 
 
+def notify_new_items(items):
+    webhook_url = os.environ.get('NEW_WIKI_WEBHOOK_URL')
+    if webhook_url:
+        post_notification(webhook_url, os.environ.get('NEW_WIKI_WEBHOOK_TOKEN'), items)
+        print(f'Posted {len(items)} winactie webhook notification(s) to new-wiki')
+        return True
+
+    github_token = os.environ.get('NEW_WIKI_GITHUB_TOKEN')
+    if github_token:
+        create_new_wiki_issue(
+            os.environ.get('NEW_WIKI_REPO', 'GraafG/new-wiki'),
+            github_token,
+            items,
+        )
+        print(f'Created new-wiki issue for {len(items)} winactie notification(s)')
+        return True
+
+    print('::warning::NEW_WIKI_GITHUB_TOKEN or NEW_WIKI_WEBHOOK_URL is required to notify new winacties; leaving new items unmarked')
+    return False
+
+
 def compact_item(deal):
     return {
         'id': deal.get('id'),
@@ -116,23 +137,14 @@ def main():
     new_items = [compact_item(d) for d in winacties if (d.get('id') or d.get('url')) not in notified]
 
     print(f'Found {len(winacties)} live winactie(s); {len(new_items)} new')
+    notification_sent = not new_items
     if new_items:
         if args.dry_run:
             print(json.dumps(new_items, ensure_ascii=False, indent=2))
         else:
-            webhook_url = os.environ.get('NEW_WIKI_WEBHOOK_URL')
-            if webhook_url:
-                post_notification(webhook_url, os.environ.get('NEW_WIKI_WEBHOOK_TOKEN'), new_items)
-                print(f'Posted {len(new_items)} winactie webhook notification(s) to new-wiki')
-            else:
-                create_new_wiki_issue(
-                    os.environ.get('NEW_WIKI_REPO', 'GraafG/new-wiki'),
-                    os.environ.get('NEW_WIKI_GITHUB_TOKEN'),
-                    new_items,
-                )
-                print(f'Created new-wiki issue for {len(new_items)} winactie notification(s)')
+            notification_sent = notify_new_items(new_items)
 
-    if not args.dry_run:
+    if not args.dry_run and notification_sent:
         for deal in winacties:
             key = deal.get('id') or deal.get('url')
             if key:
