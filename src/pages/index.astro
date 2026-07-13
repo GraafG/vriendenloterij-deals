@@ -72,6 +72,34 @@ const homepageJsonLd = [
       <select id="date-picker" title="Selecteer datum" aria-label="Selecteer datum"></select>
       <select id="location-filter" title="Filter op locatie" aria-label="Filter op locatie"><option value="">Alle locaties</option></select>
       <input type="text" id="search-box" placeholder="Zoek op naam, locatie, aanbieder..." aria-label="Zoek deals" />
+      <select id="offer-filter" title="Filter op aanbodtype" aria-label="Filter op aanbodtype"><option value="">Alle aanbodtypes</option></select>
+      <select id="category-filter" title="Filter op categorie" aria-label="Filter op categorie"><option value="">Alle categorieen</option></select>
+      <select id="activity-filter" title="Filter op activiteitstype" aria-label="Filter op activiteitstype"><option value="">Alle activiteitstypes</option></select>
+      <select id="province-filter" title="Filter op provincie" aria-label="Filter op provincie"><option value="">Alle provincies</option></select>
+      <select id="geo-filter" title="Filter op kaartdata" aria-label="Filter op kaartdata">
+        <option value="">Alle kaartdata</option>
+        <option value="with">Met kaartlocatie</option>
+        <option value="without">Zonder kaartlocatie</option>
+      </select>
+      <select id="date-filter" title="Filter op einddatum" aria-label="Filter op einddatum">
+        <option value="">Alle einddatums</option>
+        <option value="ending7">Loopt af binnen 7 dagen</option>
+        <option value="future">Toekomstig of lopend</option>
+        <option value="ended">Einddatum verstreken</option>
+        <option value="none">Geen einddatum</option>
+      </select>
+      <select id="change-filter" title="Filter op wijzigingsstatus" aria-label="Filter op wijzigingsstatus">
+        <option value="">Alle wijzigingen</option>
+        <option value="new">Nieuw</option>
+        <option value="changed">Gewijzigd</option>
+        <option value="stable">Stabiel</option>
+      </select>
+      <select id="visibility-filter" title="Filter op zichtbaarheid" aria-label="Filter op zichtbaarheid">
+        <option value="">Alle zichtbaarheid</option>
+        <option value="website">Op website</option>
+        <option value="app">In app</option>
+        <option value="winactie">Winacties</option>
+      </select>
       <select id="expired-filter" title="Filter op status" aria-label="Filter op dealstatus">
         <option value="active">Actieve deals</option>
         <option value="all">Alle deals</option>
@@ -100,6 +128,7 @@ const homepageJsonLd = [
     <button id="btn-table" class="active" onclick="showView('table')" role="tab" aria-selected="true">Tabel</button>
     <button id="btn-map" onclick="showView('map')" role="tab" aria-selected="false">Kaart</button>
     <button id="btn-split" onclick="showView('split')" role="tab" aria-selected="false">Kaart + Lijst</button>
+    <a class="view-toggle-link" href={`${import.meta.env.BASE_URL}wijzigingen/`}>Wijzigingen</a>
   </div>
 
   <div class="split-wrap">
@@ -195,6 +224,14 @@ let allDeals = [];
 let historyData = {};
 let _expiredDeals = [];
 let expiredFilter = 'active'; // 'active' | 'all' | 'expired'
+let offerFilter = '';
+let categoryFilter = '';
+let activityFilter = '';
+let provinceFilter = '';
+let geoFilter = '';
+let dateFilter = '';
+let changeFilter = '';
+let visibilityFilter = '';
 let sortCol = 'discount_num';
 let sortAsc = false;
 let map = null;
@@ -218,6 +255,14 @@ function updateDocumentTitle() {
   const q = searchBox.value.trim();
   if (q) parts.push(`Zoek: ${q}`);
   if (locationFilter.value) parts.push(locationFilter.value);
+  if (offerFilter) parts.push(offerFilter);
+  if (categoryFilter) parts.push(categoryFilter);
+  if (activityFilter) parts.push(activityFilter);
+  if (provinceFilter) parts.push(provinceFilter);
+  if (geoFilter) parts.push(geoFilter === 'with' ? 'met kaartdata' : 'zonder kaartdata');
+  if (dateFilter) parts.push(dateFilter);
+  if (changeFilter) parts.push(changeFilter);
+  if (visibilityFilter) parts.push(visibilityFilter);
   if (expiredFilter === 'expired') parts.push('verlopen deals');
   else if (expiredFilter === 'all') parts.push('alle deals');
 
@@ -230,6 +275,14 @@ function readUrlState() {
     q: params.get('q') || params.get('search') || '',
     date: params.get('date') || '',
     location: params.get('location') || params.get('loc') || '',
+    offer: params.get('offer') || '',
+    category: params.get('category') || '',
+    activity: params.get('activity') || '',
+    province: params.get('province') || '',
+    geo: params.get('geo') || '',
+    ending: params.get('ending') || '',
+    change: params.get('change') || '',
+    visibility: params.get('visibility') || '',
     status: params.get('status') || params.get('expired') || '',
     view: params.get('view') || '',
     sort: params.get('sort') || '',
@@ -249,6 +302,14 @@ function updateUrlState({ replace = true } = {}) {
   if (q) params.set('q', q);
   if (picker.value && picker.selectedIndex > 0) params.set('date', picker.value);
   if (locationFilter.value) params.set('location', locationFilter.value);
+  if (offerFilter) params.set('offer', offerFilter);
+  if (categoryFilter) params.set('category', categoryFilter);
+  if (activityFilter) params.set('activity', activityFilter);
+  if (provinceFilter) params.set('province', provinceFilter);
+  if (geoFilter) params.set('geo', geoFilter);
+  if (dateFilter) params.set('ending', dateFilter);
+  if (changeFilter) params.set('change', changeFilter);
+  if (visibilityFilter) params.set('visibility', visibilityFilter);
   if (expiredFilter !== 'active') params.set('status', expiredFilter);
   if (currentView !== 'table') params.set('view', currentView);
   if (sortCol !== 'discount_num') params.set('sort', sortCol);
@@ -278,10 +339,26 @@ function applyUrlStateToControls(state) {
     document.getElementById('location-filter').value = '';
   }
 
+  offerFilter = setSelectFromState('offer-filter', state.offer);
+  categoryFilter = setSelectFromState('category-filter', state.category);
+  activityFilter = setSelectFromState('activity-filter', state.activity);
+  provinceFilter = setSelectFromState('province-filter', state.province);
+  geoFilter = setSelectFromState('geo-filter', state.geo);
+  dateFilter = setSelectFromState('date-filter', state.ending);
+  changeFilter = setSelectFromState('change-filter', state.change);
+  visibilityFilter = setSelectFromState('visibility-filter', state.visibility);
+
   if (state.sort) sortCol = state.sort;
   sortAsc = state.dir === 'asc';
 
   _isApplyingUrlState = false;
+}
+
+function setSelectFromState(id, value) {
+  const select = document.getElementById(id);
+  if (!select) return '';
+  select.value = [...select.options].some(opt => opt.value === value) ? value : '';
+  return select.value;
 }
 
 function applyUrlStateAfterDataLoad(state) {
@@ -349,7 +426,9 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
         d._minPrice = h.min_price;
         d._maxPrice = h.max_price;
         d._daysTracked = h.days_tracked || 1;
-        d._history = h.prices || [];
+        d._history = Array.isArray(h.prices) ? h.prices : [];
+        d._changeTrend = h.trend || 'stable';
+        d._historyMeta = h;
       } else {
         d._trend = 'new';
         d._atLowest = false;
@@ -357,6 +436,8 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
         d._maxPrice = null;
         d._daysTracked = 1;
         d._history = [];
+        d._changeTrend = 'new';
+        d._historyMeta = null;
       }
       d.trend = d._trend === 'down' ? 0 : d._trend === 'stable' ? 1 : d._trend === 'up' ? 2 : 3;
     });
@@ -378,6 +459,13 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
         discounted_price: price,
         original_price: original,
         discount_num: lastEntry.discount_num || 0,
+        label: h.label || '',
+        offers: h.offers || [],
+        categories: h.categories || [],
+        types: h.types || [],
+        is_winactie: h.is_winactie || false,
+        show_on_website: h.show_on_website,
+        show_on_app: h.show_on_app,
         savings: (original != null && price != null) ? +(original - price).toFixed(2) : null,
         rating: null,
         locations: h.locations || null,
@@ -390,6 +478,8 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
         _daysTracked: h.days_tracked || 1,
         _history: priceHistory,
         _last_seen: h.last_seen || '',
+        _changeTrend: h.trend || 'stable',
+        _historyMeta: h,
         trend: h.trend === 'down' ? 0 : h.trend === 'stable' ? 1 : h.trend === 'up' ? 2 : 3,
       });
     }
@@ -397,11 +487,61 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
 
     expandedUrl = null;
     populateLocationFilter();
+    populateExtraFilters();
     applyUrlStateAfterDataLoad(urlState);
     if (updateUrl) updateUrlState({ replace: false });
   } catch (e) {
     document.getElementById('loading').textContent = 'Fout bij laden van deals.';
     console.error(e);
+  }
+
+  function appendOptions(select, values) {
+    const current = select.value;
+    values.filter(Boolean).sort((a, b) => a.localeCompare(b, 'nl')).forEach(value => {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      select.appendChild(opt);
+    });
+    select.value = [...select.options].some(opt => opt.value === current) ? current : '';
+  }
+
+  function populateExtraFilters() {
+    const pool = [...allDeals, ..._expiredDeals];
+    const offerSelect = document.getElementById('offer-filter');
+    const categorySelect = document.getElementById('category-filter');
+    const activitySelect = document.getElementById('activity-filter');
+    const provinceSelect = document.getElementById('province-filter');
+
+    offerSelect.innerHTML = '<option value="">Alle aanbodtypes</option>';
+    categorySelect.innerHTML = '<option value="">Alle categorieen</option>';
+    activitySelect.innerHTML = '<option value="">Alle activiteitstypes</option>';
+    provinceSelect.innerHTML = '<option value="">Alle provincies</option>';
+
+    appendOptions(offerSelect, [...new Set(pool.flatMap(d => d.offers || []).concat(pool.map(d => d.label || '')))]);
+    appendOptions(categorySelect, [...new Set(pool.flatMap(d => d.categories || []))]);
+    appendOptions(activitySelect, [...new Set(pool.flatMap(d => d.types || []))]);
+    appendOptions(provinceSelect, [...new Set(pool.flatMap(d => (d.locations || []).map(loc => loc.province || '')).filter(Boolean))]);
+  }
+
+  function hasGeo(deal) {
+    return (Array.isArray(deal.locations) && deal.locations.some(loc => loc && loc.lat != null && loc.lng != null)) || (deal.lat != null && deal.lng != null);
+  }
+
+  function dealProvinces(deal) {
+    return (deal.locations || []).map(loc => loc.province).filter(Boolean);
+  }
+
+  function isEndingMatch(deal) {
+    if (!dateFilter) return true;
+    if (!deal.end_ts) return dateFilter === 'none';
+    const now = Date.now() / 1000;
+    const sevenDays = 7 * 24 * 60 * 60;
+    if (dateFilter === 'ending7') return deal.end_ts >= now && deal.end_ts <= now + sevenDays;
+    if (dateFilter === 'future') return deal.end_ts >= now;
+    if (dateFilter === 'ended') return deal.end_ts < now;
+    if (dateFilter === 'none') return false;
+    return true;
   }
 }
 
@@ -430,7 +570,22 @@ function getFiltered(forMap = false) {
 
   let deals = pool.filter(d => {
     if (loc && d.location !== loc) return false;
-    if (q && !(d.name + ' ' + d.location + ' ' + d.provider).toLowerCase().includes(q)) return false;
+    if (offerFilter && ![d.label, ...(d.offers || [])].includes(offerFilter)) return false;
+    if (categoryFilter && !(d.categories || []).includes(categoryFilter)) return false;
+    if (activityFilter && !(d.types || []).includes(activityFilter)) return false;
+    if (provinceFilter && !dealProvinces(d).includes(provinceFilter)) return false;
+    if (geoFilter === 'with' && !hasGeo(d)) return false;
+    if (geoFilter === 'without' && hasGeo(d)) return false;
+    if (!isEndingMatch(d)) return false;
+    if (changeFilter && (d._changeTrend || 'stable') !== changeFilter) return false;
+    if (visibilityFilter === 'website' && d.show_on_website !== true) return false;
+    if (visibilityFilter === 'app' && d.show_on_app !== true) return false;
+    if (visibilityFilter === 'winactie' && d.is_winactie !== true) return false;
+    const haystack = [
+      d.name, d.location, d.provider, d.label,
+      ...(d.offers || []), ...(d.categories || []), ...(d.types || []),
+    ].join(' ').toLowerCase();
+    if (q && !haystack.includes(q)) return false;
     return true;
   });
 
@@ -718,6 +873,14 @@ function rerenderForFilterChange() {
 document.getElementById('search-box').addEventListener('input', rerenderForFilterChange);
 document.getElementById('location-filter').addEventListener('change', rerenderForFilterChange);
 document.getElementById('expired-filter').addEventListener('change', e => { expiredFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('offer-filter').addEventListener('change', e => { offerFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('category-filter').addEventListener('change', e => { categoryFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('activity-filter').addEventListener('change', e => { activityFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('province-filter').addEventListener('change', e => { provinceFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('geo-filter').addEventListener('change', e => { geoFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('date-filter').addEventListener('change', e => { dateFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('change-filter').addEventListener('change', e => { changeFilter = e.target.value; rerenderForFilterChange(); });
+document.getElementById('visibility-filter').addEventListener('change', e => { visibilityFilter = e.target.value; rerenderForFilterChange(); });
 
 window.addEventListener('popstate', () => {
   const state = readUrlState();

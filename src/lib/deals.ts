@@ -19,7 +19,7 @@ export interface DealHistory {
   name: string;
   location: string;
   provider: string;
-  prices: PricePoint[];
+  prices?: PricePoint[];
   first_seen: string;
   last_seen: string;
   min_price: number;
@@ -29,6 +29,14 @@ export interface DealHistory {
   trend: string;
   days_tracked: number;
   is_active: boolean;
+  label?: string;
+  offers?: string[];
+  offer_enums?: string[];
+  categories?: string[];
+  types?: string[];
+  is_winactie?: boolean;
+  snapshots?: Array<{ date: string; signature?: string; snapshot?: Record<string, unknown> }>;
+  changes?: Array<{ date: string; signature?: string; fields?: string[] }>;
 }
 
 export interface SnapshotDeal {
@@ -48,6 +56,17 @@ export interface SnapshotDeal {
   locations?: Location[];
   image_url?: string;
   review_count?: number;
+  label?: string;
+  offers?: string[];
+  categories?: string[];
+  types?: string[];
+  is_winactie?: boolean;
+  show_on_website?: boolean;
+  show_on_app?: boolean;
+  start_date?: string;
+  end_date?: string;
+  start_ts?: number;
+  end_ts?: number;
 }
 
 export interface PriceChange {
