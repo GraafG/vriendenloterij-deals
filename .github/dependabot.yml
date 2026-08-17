@@ -7,14 +7,22 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Amsterdam
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     groups:
-      astro:
+      npm-patch-minor:
+        applies-to: version-updates
         patterns:
-          - "astro"
-          - "@astrojs/*"
-      dev-dependencies:
-        dependency-type: development
+          - "*"
+        update-types:
+          - minor
+          - patch
+      npm-security-patch-minor:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     commit-message:
       prefix: chore(deps)
       include: scope
@@ -26,7 +34,22 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Amsterdam
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      pip-patch-minor:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      pip-security-patch-minor:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     commit-message:
       prefix: chore(deps)
       include: scope
@@ -38,7 +61,15 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Amsterdam
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      github-actions-patch-minor:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     commit-message:
       prefix: chore(ci)
       include: scope
