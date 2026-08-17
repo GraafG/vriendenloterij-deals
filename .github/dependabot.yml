@@ -20,6 +20,11 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
+        exclude-patterns:
+          # sharp is pre-1.0, so Dependabot classifies 0.34 -> 0.35 as a minor
+          # even though 0.x minors are breaking by convention. Held out of the
+          # group so it stays an individually reviewable PR.
+          - "sharp"
         update-types:
           - minor
           - patch
