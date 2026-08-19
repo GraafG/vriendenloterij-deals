@@ -494,55 +494,55 @@ async function loadDate(dateStr, urlState = readUrlState(), { updateUrl = false 
     document.getElementById('loading').textContent = 'Fout bij laden van deals.';
     console.error(e);
   }
+}
 
-  function appendOptions(select, values) {
-    const current = select.value;
-    values.filter(Boolean).sort((a, b) => a.localeCompare(b, 'nl')).forEach(value => {
-      const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = value;
-      select.appendChild(opt);
-    });
-    select.value = [...select.options].some(opt => opt.value === current) ? current : '';
-  }
+function appendOptions(select, values) {
+  const current = select.value;
+  values.filter(Boolean).sort((a, b) => a.localeCompare(b, 'nl')).forEach(value => {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    select.appendChild(opt);
+  });
+  select.value = [...select.options].some(opt => opt.value === current) ? current : '';
+}
 
-  function populateExtraFilters() {
-    const pool = [...allDeals, ..._expiredDeals];
-    const offerSelect = document.getElementById('offer-filter');
-    const categorySelect = document.getElementById('category-filter');
-    const activitySelect = document.getElementById('activity-filter');
-    const provinceSelect = document.getElementById('province-filter');
+function populateExtraFilters() {
+  const pool = [...allDeals, ..._expiredDeals];
+  const offerSelect = document.getElementById('offer-filter');
+  const categorySelect = document.getElementById('category-filter');
+  const activitySelect = document.getElementById('activity-filter');
+  const provinceSelect = document.getElementById('province-filter');
 
-    offerSelect.innerHTML = '<option value="">Alle aanbodtypes</option>';
-    categorySelect.innerHTML = '<option value="">Alle categorieen</option>';
-    activitySelect.innerHTML = '<option value="">Alle activiteitstypes</option>';
-    provinceSelect.innerHTML = '<option value="">Alle provincies</option>';
+  offerSelect.innerHTML = '<option value="">Alle aanbodtypes</option>';
+  categorySelect.innerHTML = '<option value="">Alle categorieen</option>';
+  activitySelect.innerHTML = '<option value="">Alle activiteitstypes</option>';
+  provinceSelect.innerHTML = '<option value="">Alle provincies</option>';
 
-    appendOptions(offerSelect, [...new Set(pool.flatMap(d => d.offers || []).concat(pool.map(d => d.label || '')))]);
-    appendOptions(categorySelect, [...new Set(pool.flatMap(d => d.categories || []))]);
-    appendOptions(activitySelect, [...new Set(pool.flatMap(d => d.types || []))]);
-    appendOptions(provinceSelect, [...new Set(pool.flatMap(d => (d.locations || []).map(loc => loc.province || '')).filter(Boolean))]);
-  }
+  appendOptions(offerSelect, [...new Set(pool.flatMap(d => d.offers || []).concat(pool.map(d => d.label || '')))]);
+  appendOptions(categorySelect, [...new Set(pool.flatMap(d => d.categories || []))]);
+  appendOptions(activitySelect, [...new Set(pool.flatMap(d => d.types || []))]);
+  appendOptions(provinceSelect, [...new Set(pool.flatMap(d => (d.locations || []).map(loc => loc.province || '')).filter(Boolean))]);
+}
 
-  function hasGeo(deal) {
-    return (Array.isArray(deal.locations) && deal.locations.some(loc => loc && loc.lat != null && loc.lng != null)) || (deal.lat != null && deal.lng != null);
-  }
+function hasGeo(deal) {
+  return (Array.isArray(deal.locations) && deal.locations.some(loc => loc && loc.lat != null && loc.lng != null)) || (deal.lat != null && deal.lng != null);
+}
 
-  function dealProvinces(deal) {
-    return (deal.locations || []).map(loc => loc.province).filter(Boolean);
-  }
+function dealProvinces(deal) {
+  return (deal.locations || []).map(loc => loc.province).filter(Boolean);
+}
 
-  function isEndingMatch(deal) {
-    if (!dateFilter) return true;
-    if (!deal.end_ts) return dateFilter === 'none';
-    const now = Date.now() / 1000;
-    const sevenDays = 7 * 24 * 60 * 60;
-    if (dateFilter === 'ending7') return deal.end_ts >= now && deal.end_ts <= now + sevenDays;
-    if (dateFilter === 'future') return deal.end_ts >= now;
-    if (dateFilter === 'ended') return deal.end_ts < now;
-    if (dateFilter === 'none') return false;
-    return true;
-  }
+function isEndingMatch(deal) {
+  if (!dateFilter) return true;
+  if (!deal.end_ts) return dateFilter === 'none';
+  const now = Date.now() / 1000;
+  const sevenDays = 7 * 24 * 60 * 60;
+  if (dateFilter === 'ending7') return deal.end_ts >= now && deal.end_ts <= now + sevenDays;
+  if (dateFilter === 'future') return deal.end_ts >= now;
+  if (dateFilter === 'ended') return deal.end_ts < now;
+  if (dateFilter === 'none') return false;
+  return true;
 }
 
 function populateLocationFilter() {
