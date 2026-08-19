@@ -1,0 +1,50 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'scripts/**'
+      - 'astro.config.mjs'
+      - 'providers/*/site.config.json'
+      - '.github/workflows/build-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Detect provider
+        id: provider
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "GraafG/vriendenloterij-deals" ]; then
+            echo "id=vriendenloterij" >> "$GITHUB_OUTPUT"
+          else
+            echo "id=tripper" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build Astro site
+        run: npm run build:${{ steps.provider.outputs.id }}
+        env:
+          ASTRO_TELEMETRY_DISABLED: '1'
