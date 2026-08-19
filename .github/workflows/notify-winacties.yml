@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: notify-new-winacties
@@ -38,14 +39,21 @@ jobs:
           NEW_WIKI_GITHUB_TOKEN: ${{ secrets.NEW_WIKI_GITHUB_TOKEN }}
 
       - name: Commit notification state
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add providers/vriendenloterij/data/notified_winacties.json
           if git diff --cached --quiet; then
             echo "No notification state changes"
-          else
-            git commit -m "Update notified winacties state"
-            git pull --rebase origin main
-            git push
+            exit 0
           fi
+          # main requires pull requests, so land the state update via an auto-merged PR.
+          branch="auto/notified-winacties-$(date -u +%Y%m%d-%H%M%S)"
+          git commit -m "Update notified winacties state"
+          git pull --rebase origin main
+          git push origin "HEAD:refs/heads/$branch"
+          pr_url=$(gh pr create --base main --head "$branch" --title "Update notified winacties state" --body "Automated notification state update from workflow run $GITHUB_RUN_ID.")
+          echo "Opened $pr_url"
+          gh pr merge "$pr_url" --squash --delete-branch --auto || gh pr merge "$pr_url" --squash --delete-branch

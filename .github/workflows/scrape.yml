@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   pages: write
   id-token: write
 
@@ -73,6 +74,8 @@ jobs:
         run: python providers/vriendenloterij/build_history.py
 
       - name: Commit results
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -85,11 +88,32 @@ jobs:
           fi
           if git diff --cached --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "$message"
-            git pull --rebase origin main
-            git push
+            exit 0
           fi
+          # main is protected by a ruleset requiring pull requests, so land the
+          # scraped data through an auto-merged PR instead of pushing directly.
+          branch="auto/scrape-$(date -u +%Y%m%d-%H%M%S)"
+          git commit -m "$message"
+          git pull --rebase origin main
+          git push origin "HEAD:refs/heads/$branch"
+          pr_url=$(gh pr create --base main --head "$branch" --title "$message" --body "Automated scrape update from workflow run $GITHUB_RUN_ID.")
+          echo "Opened $pr_url"
+          gh pr merge "$pr_url" --squash --delete-branch --auto || gh pr merge "$pr_url" --squash --delete-branch
+          # Wait for the merge to land so the deploy job builds the new data.
+          for _ in $(seq 1 30); do
+            state=$(gh pr view "$pr_url" --json state -q .state)
+            if [ "$state" = "MERGED" ]; then
+              echo "PR merged"
+              exit 0
+            fi
+            if [ "$state" = "CLOSED" ]; then
+              echo "PR was closed without merging" >&2
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for PR merge: $pr_url" >&2
+          exit 1
 
   deploy:
     needs: scrape
